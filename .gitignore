@@ -1,0 +1,46 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Local backups and editor state
+*.bak
+*.bak*
+*.swp
+*.swo
+*.orig
+*.symaga-bak
+*.broken-*
+/n8n-workflows/backup-broken-*/
+
+# Playwright CLI scratch
+/.playwright-cli/
+
+# Python runtime artifacts from the legacy implementation
+__pycache__/
+*.py[cod]
+/app/data/
+/logs/
+
+# Local agent scratch files
+/Khun Aran Agent
+/Maite Agent
+
+# Per-machine editor/agent settings
+/.claude/
+
+# Live exports and n8n credentials must never be committed
+/n8n-workflows/live-exports/
+
+# Server-side secret: x-maite-token injected by nginx, never in repo
+/deploy/token.conf
+
+# n8n workflow backups: exports contain literal auth tokens — keep local, never commit
+/n8n-workflows/talay-deleted-*/
+
+# Informe local de la batería de regresión (conversaciones de prueba)
+/scripts/regression/last_run.json
+/scripts/regression/repeat_last.json
+
+# Copias de rollback de workflows n8n: contienen el token del Auth Gate. Solo en local.
+n8n-workflows/prompt-backups/*-pre.json

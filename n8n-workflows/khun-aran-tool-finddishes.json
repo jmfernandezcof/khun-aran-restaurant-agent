@@ -1,0 +1,84 @@
+{
+  "name": "Khun Aran-Tool-FindDishes",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "name": "When Called by Agent",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a1b2c3d4-0001-4000-8000-000000000001"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH p AS (\n  SELECT NULLIF($1::text, '') AS kind,\n         array_remove(string_to_array(regexp_replace(lower($2::text), '\\s', '', 'g'), ','), '') AS no_alg,\n         NULLIF(lower($3::text), '') AS diet,\n         NULLIF(lower($4::text), '') AS service,\n         COALESCE(NULLIF($5::text, '')::date, (now() AT TIME ZONE 'Asia/Bangkok')::date) AS d,\n         array_remove(string_to_array(regexp_replace(lower($6::text), '\\s', '', 'g'), ','), '') AS no_contains,\n         NULLIF(trim($7::text), '') AS dish,\n         array_remove(string_to_array(lower(trim($8::text)), ' '), '') AS words\n)\nSELECT m.kind, m.section, m.name, m.description, m.price_thb, m.unit, m.service,\n       m.allergens, m.diet, m.spicy, m.contains, m.notes, m.available_from, m.available_to,\n       ARRAY(SELECT unnest(m.allergens) INTERSECT SELECT unnest(p.no_alg)) AS allergen_conflicts,\n       ARRAY(SELECT unnest(m.contains) INTERSECT SELECT unnest(p.no_contains)) AS contains_conflicts,\n       (p.diet IS NULL\n        OR (p.diet = 'vegan' AND m.diet @> '{vegan}')\n        OR (p.diet = 'vegetarian' AND m.diet && '{vegetarian,vegan}')\n        OR (p.diet = 'gluten_free' AND m.diet && '{gluten_free,gluten_free_on_request}')) AS diet_ok,\n       p.dish IS NOT NULL AS lookup\nFROM menu_items m, p\nWHERE m.available\n  AND (p.kind IS NULL OR m.kind = p.kind)\n  AND CASE WHEN p.dish IS NOT NULL THEN\n        m.name ILIKE '%' || p.dish || '%'\n      ELSE\n        NOT (m.allergens && p.no_alg)\n        AND NOT (m.contains && p.no_contains)\n        AND (p.diet IS NULL\n             OR (p.diet = 'vegan' AND m.diet @> '{vegan}')\n             OR (p.diet = 'vegetarian' AND m.diet && '{vegetarian,vegan}')\n             OR (p.diet = 'gluten_free' AND m.diet && '{gluten_free,gluten_free_on_request}'))\n        AND (p.service IS NULL OR m.service @> ARRAY[p.service])\n        AND (m.available_from IS NULL OR m.available_from <= p.d)\n        AND (m.available_to IS NULL OR m.available_to >= p.d)\n        AND NOT EXISTS (SELECT 1 FROM unnest(p.words) w\n                        WHERE lower(m.name || ' ' || m.description || ' ' || m.section) NOT LIKE '%' || w || '%')\n      END\nORDER BY m.id",
+        "options": {
+          "queryReplacement": "={{ [$json.kind || '', $json.exclude_allergens || '', $json.diet || '', $json.service || '', $json.date || '', $json.exclude_contains || '', $json.dish || '', $json.text || ''] }}"
+        }
+      },
+      "name": "Find Dishes",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        260,
+        0
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "epQtsywLYdQbHmj0",
+          "name": "Postgres - maite_flames_kohsamui"
+        }
+      },
+      "id": "a1b2c3d4-0002-4000-8000-000000000002"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(i => i.json).filter(r => r && r.name);\nconst f = $('When Called by Agent').first().json;\nconst lookup = !!(f.dish && String(f.dish).trim());\nconst item = r => ({ section: r.section, name: r.name, description: r.description, unit: r.unit || undefined,\n  allergens: r.allergens, diet: r.diet, spicy: r.spicy, contains: r.contains, notes: r.notes || undefined,\n  available_from: r.available_from || undefined, available_to: r.available_to || undefined,\n  ...(lookup ? { price_thb: r.price_thb, allergen_conflicts: r.allergen_conflicts, contains_conflicts: r.contains_conflicts, diet_ok: r.diet_ok,\n                 suits_guest: r.allergen_conflicts.length === 0 && r.contains_conflicts.length === 0 && r.diet_ok } : {}) });\nreturn [{ json: {\n  mode: lookup ? 'lookup' : 'search',\n  status: rows.length ? 'ok' : (lookup ? 'not_found' : 'no_match'),\n  count: rows.length,\n  filters: { kind: f.kind || 'any', exclude_allergens: f.exclude_allergens || '', diet: f.diet || '',\n             service: f.service || '', date: f.date || 'today', exclude_contains: f.exclude_contains || '', dish: f.dish || '', text: f.text || '' },\n  note: lookup\n    ? 'Lookup of named items. suits_guest=false means it contains an excluded allergen or ingredient, or does not fit the diet. Cross-contact is possible; the team confirms on arrival.'\n    : 'Only these items match the filters. Allergens are from the menu data; cross-contact is possible and the team confirms on arrival.',\n  items: rows.map(item),\n} }];"
+      },
+      "name": "Build Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        0
+      ],
+      "id": "a1b2c3d4-0003-4000-8000-000000000003"
+    }
+  ],
+  "connections": {
+    "When Called by Agent": {
+      "main": [
+        [
+          {
+            "node": "Find Dishes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Dishes": {
+      "main": [
+        [
+          {
+            "node": "Build Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Bangkok",
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}

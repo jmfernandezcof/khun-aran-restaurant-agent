@@ -1,0 +1,277 @@
+{
+ "name": "Khun Aran-Tool-SendConfirmation",
+ "nodes": [
+  {
+   "parameters": {
+    "inputSource": "passthrough"
+   },
+   "name": "When Called by Agent",
+   "type": "n8n-nodes-base.executeWorkflowTrigger",
+   "typeVersion": 1.1,
+   "position": [
+    0,
+    300
+   ],
+   "id": "a0becf82-9c20-4e56-8c3f-f1f1e7bba112"
+  },
+  {
+   "parameters": {
+    "operation": "executeQuery",
+    "query": "WITH inp AS (\n  SELECT upper(BTRIM($1)) AS code, lower(BTRIM($5)) AS email\n),\nr AS (\n  SELECT r.reservation_id, r.confirmation_code, r.reservation_date, r.reservation_time, r.people, r.zone,\n         r.special_requests, r.confirmation_email_sent_at, r.confirmation_email_to, c.customer_id, c.name, c.surname\n  FROM reservations r\n  JOIN customers c ON c.customer_id = r.customer_id, inp\n  WHERE r.confirmation_code = inp.code\n    AND r.status IN ('confirmed','pending')\n    AND r.reservation_date >= (NOW() AT TIME ZONE 'Asia/Bangkok')::date\n    AND (\n      ( $3 = 'web'\n        AND c.channel = 'web'\n        AND c.channel_user_id = 'phone:' || BTRIM(regexp_replace($2,'[[:space:]().-]','','g')) )\n      OR\n      ( $3 = 'telegram' AND r.customer_id = NULLIF($4,'')::uuid )\n    )\n),\nchk AS (\n  SELECT CASE\n    WHEN NOT EXISTS (SELECT 1 FROM r) THEN 'not_found'\n    WHEN length((SELECT email FROM inp)) > 254\n      OR (SELECT email FROM inp) !~ '^[a-z0-9._%+''-]+@[a-z0-9-]+(\\.[a-z0-9-]+)*\\.[a-z]{2,}$' THEN 'invalid_email'\n    WHEN (SELECT confirmation_email_sent_at FROM r) IS NOT NULL THEN 'already_sent'\n    ELSE 'ok' END AS status\n),\nclaim AS (\n  UPDATE reservations SET confirmation_email_sent_at = now(), confirmation_email_to = (SELECT email FROM inp),\n         updated_at = now()\n  WHERE reservation_id = (SELECT reservation_id FROM r) AND confirmation_email_sent_at IS NULL\n    AND (SELECT status FROM chk) = 'ok'\n  RETURNING reservation_id\n),\ncust AS (\n  UPDATE customers SET email = (SELECT email FROM inp), updated_at = now()\n  WHERE customer_id = (SELECT customer_id FROM r) AND EXISTS (SELECT 1 FROM claim)\n  RETURNING customer_id\n)\nSELECT\n  CASE WHEN (SELECT status FROM chk) = 'ok' AND NOT EXISTS (SELECT 1 FROM claim) THEN 'already_sent'\n       ELSE (SELECT status FROM chk) END AS status,\n  (SELECT reservation_id FROM claim) AS claimed_reservation_id,\n  r.confirmation_code,\n  r.reservation_date::text AS reservation_date,\n  to_char(r.reservation_date, 'FMDay FMDD FMMonth YYYY') AS date_label,\n  to_char(r.reservation_time, 'HH24:MI') AS reservation_time,\n  r.people, r.zone, r.special_requests,\n  BTRIM(concat_ws(' ', r.name, r.surname)) AS guest_name,\n  (SELECT email FROM inp) AS email,\n  -- already_sent: only the masked address it went to (never reveal someone else's full email)\n  regexp_replace(r.confirmation_email_to, '^(.).*(@.*)$', '\\1***\\2') AS sent_to_masked\nFROM (SELECT 1) one LEFT JOIN r ON true",
+    "options": {
+     "queryReplacement": "={{ [$json.confirmation_code, $json.phone, $json.channel, $json.customer_id, $json.email] }}"
+    }
+   },
+   "name": "Claim Send",
+   "type": "n8n-nodes-base.postgres",
+   "typeVersion": 2.6,
+   "position": [
+    220,
+    300
+   ],
+   "id": "ea7d2062-1ede-4e5e-8838-1b53dda992f0",
+   "credentials": {
+    "postgres": {
+     "id": "epQtsywLYdQbHmj0",
+     "name": "Postgres - maite_flames_kohsamui"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "5f073b55-25e2-4f46-9401-d258a1ee2945",
+       "leftValue": "={{ $json.status }}",
+       "rightValue": "ok",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       }
+      }
+     ],
+     "combinator": "and"
+    },
+    "options": {}
+   },
+   "name": "Claimed?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    440,
+    300
+   ],
+   "id": "64c4e2b8-c7b2-4c27-82a7-40c15c938c9b"
+  },
+  {
+   "parameters": {
+    "jsCode": "// Khun Aran-Tool-SendConfirmation, node \"Build Email\" (n8n Code, run once for all items).\n// Builds subject + HTML + .ics from the \"Claim Send\" row (DB data only; nothing written by the model).\n// Languages: es, en, th (fallback en). The date words come from code, not from the model.\nconst r = $('Claim Send').first().json;\nconst lang = ['es', 'en', 'th'].includes(String($('When Called by Agent').first().json.language || '').toLowerCase())\n  ? String($('When Called by Agent').first().json.language).toLowerCase() : 'en';\n\nconst VENUE = 'Flames · Talay Cliff Resort & Spa, Koh Samui';\nconst TEAM = 'np.flames.kohsamui@gmail.com';\nconst WEB = 'https://demo-talay.nomadprompters.es';\nconst [y, m, d] = r.reservation_date.split('-').map(Number);\nconst [hh, mi] = r.reservation_time.split(':').map(Number);\nconst wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); // 0 = Sunday\n\nconst L = {\n  es: { days: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],\n        months: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],\n        date: (w, dd, mm, yy) => `${w} ${dd} de ${mm} de ${yy}`,\n        subject: 'Su reserva en Flames', hello: n => `Estimado/a ${n}:`, intro: 'Le confirmamos su reserva en Flames. Estos son los detalles:',\n        code: 'Código', when: 'Fecha', time: 'Hora', people: 'Comensales', zone: 'Zona', notes: 'Notas para la cocina',\n        zones: { indoor: 'Interior', terrace: 'Terraza' },\n        change: `Para modificar o cancelar su reserva, escriba a Khun Aran en ${WEB} indicando su código y el teléfono con el que reservó, o al equipo en ${TEAM}.`,\n        ics: 'Añada la reserva a su calendario con el archivo adjunto.', bye: 'Le esperamos. Un cordial saludo,', sign: 'Khun Aran · Flames',\n        demo: 'Demostración de Nomad Prompters.' },\n  en: { days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],\n        months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],\n        date: (w, dd, mm, yy) => `${w} ${dd} ${mm} ${yy}`,\n        subject: 'Your reservation at Flames', hello: n => `Dear ${n},`, intro: 'We are pleased to confirm your reservation at Flames. Here are the details:',\n        code: 'Code', when: 'Date', time: 'Time', people: 'Guests', zone: 'Area', notes: 'Notes for the kitchen',\n        zones: { indoor: 'Indoor', terrace: 'Terrace' },\n        change: `To change or cancel your booking, write to Khun Aran at ${WEB} with your code and the phone number you booked with, or to the team at ${TEAM}.`,\n        ics: 'Add the booking to your calendar with the attached file.', bye: 'We look forward to welcoming you. Kind regards,', sign: 'Khun Aran · Flames',\n        demo: 'A Nomad Prompters demo.' },\n  th: { days: ['วันอาทิตย์', 'วันจันทร์', 'วันอังคาร', 'วันพุธ', 'วันพฤหัสบดี', 'วันศุกร์', 'วันเสาร์'],\n        months: ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'],\n        date: (w, dd, mm, yy) => `${w}ที่ ${dd} ${mm} ${yy}`,\n        subject: 'การจองของท่านที่ Flames', hello: n => `เรียน คุณ${n}`, intro: 'เรายินดีขอยืนยันการจองของท่านที่ Flames รายละเอียดมีดังนี้',\n        code: 'รหัสการจอง', when: 'วันที่', time: 'เวลา', people: 'จำนวนผู้ร่วมรับประทาน', zone: 'โซน', notes: 'หมายเหตุสำหรับห้องครัว',\n        zones: { indoor: 'ในร่ม', terrace: 'ระเบียง' },\n        change: `หากต้องการเปลี่ยนแปลงหรือยกเลิกการจอง โปรดติดต่อ Khun Aran ที่ ${WEB} พร้อมรหัสการจองและหมายเลขโทรศัพท์ที่ใช้จอง หรือติดต่อทีมงานที่ ${TEAM}`,\n        ics: 'ท่านสามารถเพิ่มการจองลงในปฏิทินได้จากไฟล์แนบ', bye: 'เรายินดีที่จะได้ต้อนรับท่าน ด้วยความเคารพ', sign: 'Khun Aran · Flames',\n        demo: 'การสาธิตโดย Nomad Prompters' },\n}[lang];\n\nconst esc = s => String(s ?? '').replace(/[&<>\"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;' }[c]));\nconst dateText = L.date(L.days[wd], d, L.months[m - 1], y);\nconst time = r.reservation_time;\nconst rows = [[L.code, r.confirmation_code], [L.when, dateText], [L.time, time], [L.people, r.people]];\nif (r.zone) rows.push([L.zone, L.zones[r.zone] || r.zone]);\nif (r.special_requests) rows.push([L.notes, r.special_requests]);\n\nconst html = `<div style=\"font-family:Georgia,serif;max-width:560px;margin:auto;color:#2b2b2b;line-height:1.5\">\n<p style=\"font-size:13px;letter-spacing:2px;color:#9a6b3f;margin:0 0 16px\">FLAMES · TALAY CLIFF</p>\n<p>${esc(L.hello(r.guest_name))}</p><p>${esc(L.intro)}</p>\n<table style=\"border-collapse:collapse;width:100%;margin:12px 0\">${rows.map(([k, v]) =>\n  `<tr><td style=\"padding:6px 12px 6px 0;color:#777;vertical-align:top;white-space:nowrap\">${esc(k)}</td><td style=\"padding:6px 0\"><b>${esc(v)}</b></td></tr>`).join('')}</table>\n<p>${esc(L.ics)}</p><p style=\"font-size:14px\">${esc(L.change)}</p>\n<p>${esc(L.bye)}<br>${esc(L.sign)}<br><span style=\"color:#777\">${esc(VENUE)}</span></p>\n<p style=\"font-size:11px;color:#aaa;margin-top:24px\">${esc(L.demo)}</p></div>`;\n\n// .ics in UTC (Asia/Bangkok is UTC+7 all year, no DST). Duration = 2 h (restaurant_config.reservation_slot_minutes).\nconst p2 = n => String(n).padStart(2, '0');\nconst utc = ms => { const t = new Date(ms); return `${t.getUTCFullYear()}${p2(t.getUTCMonth() + 1)}${p2(t.getUTCDate())}T${p2(t.getUTCHours())}${p2(t.getUTCMinutes())}00Z`; };\nconst start = Date.UTC(y, m - 1, d, hh - 7, mi);\nconst icsEsc = s => String(s).replace(/\\\\/g, '\\\\\\\\').replace(/;/g, '\\;').replace(/,/g, '\\\\,').replace(/\\n/g, '\\\\n');\nconst ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Nomad Prompters//Khun Aran//EN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',\n  `UID:${r.confirmation_code}@flames.demo-talay.nomadprompters.es`, `DTSTAMP:${utc(Date.now())}`,\n  `DTSTART:${utc(start)}`, `DTEND:${utc(start + 120 * 60000)}`,\n  `SUMMARY:${icsEsc(`Flames · ${r.confirmation_code}`)}`, `LOCATION:${icsEsc(VENUE)}`,\n  `DESCRIPTION:${icsEsc(`${L.code}: ${r.confirmation_code} · ${L.people}: ${r.people}`)}`,\n  'END:VEVENT', 'END:VCALENDAR'].join('\\r\\n');\n\nreturn [{\n  json: { to: r.email, subject: `${L.subject} · ${dateText} · ${r.confirmation_code}`, html, reservation_id: r.claimed_reservation_id },\n  binary: { ics: { data: Buffer.from(ics, 'utf8').toString('base64'), mimeType: 'text/calendar', fileName: `flames-${r.confirmation_code}.ics` } },\n}];\n"
+   },
+   "name": "Build Email",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    660,
+    200
+   ],
+   "id": "90087038-508a-4ee9-90e6-1ab572092ca2"
+  },
+  {
+   "parameters": {
+    "sendTo": "={{ $json.to }}",
+    "subject": "={{ $json.subject }}",
+    "emailType": "html",
+    "message": "={{ $json.html }}",
+    "options": {
+     "appendAttribution": false,
+     "senderName": "Flames · Khun Aran",
+     "attachmentsUi": {
+      "attachmentsBinary": [
+       {
+        "property": "ics"
+       }
+      ]
+     }
+    }
+   },
+   "name": "Send Gmail",
+   "type": "n8n-nodes-base.gmail",
+   "typeVersion": 2.1,
+   "position": [
+    880,
+    200
+   ],
+   "id": "9d509482-b53b-4333-b118-efa9860c9921",
+   "credentials": {
+    "gmailOAuth2": {
+     "id": "__GMAIL_CRED_ID__",
+     "name": "Gmail Flames Koh Samui"
+    }
+   },
+   "onError": "continueErrorOutput"
+  },
+  {
+   "parameters": {
+    "mode": "raw",
+    "jsonOutput": "={{ JSON.stringify({ status: 'sent', sent_to: $('Claim Send').first().json.email, confirmation_code: $('Claim Send').first().json.confirmation_code, date_label: $('Claim Send').first().json.date_label }) }}",
+    "options": {}
+   },
+   "name": "Output Sent",
+   "type": "n8n-nodes-base.set",
+   "typeVersion": 3.4,
+   "position": [
+    1100,
+    120
+   ],
+   "id": "f0421d24-b3ce-41e6-bb80-351a058a4094"
+  },
+  {
+   "parameters": {
+    "operation": "executeQuery",
+    "query": "UPDATE reservations SET confirmation_email_sent_at = NULL, confirmation_email_to = NULL WHERE reservation_id = $1::int",
+    "options": {
+     "queryReplacement": "={{ [$('Claim Send').first().json.claimed_reservation_id] }}"
+    }
+   },
+   "name": "Release Claim",
+   "type": "n8n-nodes-base.postgres",
+   "typeVersion": 2.6,
+   "position": [
+    1100,
+    300
+   ],
+   "id": "41255de1-75f4-46b4-9924-f858e694f8bf",
+   "credentials": {
+    "postgres": {
+     "id": "epQtsywLYdQbHmj0",
+     "name": "Postgres - maite_flames_kohsamui"
+    }
+   },
+   "alwaysOutputData": true
+  },
+  {
+   "parameters": {
+    "mode": "raw",
+    "jsonOutput": "={{ JSON.stringify({ status: 'send_failed' }) }}",
+    "options": {}
+   },
+   "name": "Output Failed",
+   "type": "n8n-nodes-base.set",
+   "typeVersion": 3.4,
+   "position": [
+    1320,
+    300
+   ],
+   "id": "bbb7331f-8163-449f-889f-9fa74aef9770"
+  },
+  {
+   "parameters": {
+    "mode": "raw",
+    "jsonOutput": "={{ JSON.stringify({ status: $json.status, sent_to_masked: $json.status === 'already_sent' ? $json.sent_to_masked : undefined }) }}",
+    "options": {}
+   },
+   "name": "Output Not Sent",
+   "type": "n8n-nodes-base.set",
+   "typeVersion": 3.4,
+   "position": [
+    660,
+    420
+   ],
+   "id": "7c1048dc-b67b-4b33-a491-c176f9bcda3e"
+  }
+ ],
+ "connections": {
+  "When Called by Agent": {
+   "main": [
+    [
+     {
+      "node": "Claim Send",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Claim Send": {
+   "main": [
+    [
+     {
+      "node": "Claimed?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Claimed?": {
+   "main": [
+    [
+     {
+      "node": "Build Email",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Output Not Sent",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Build Email": {
+   "main": [
+    [
+     {
+      "node": "Send Gmail",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Send Gmail": {
+   "main": [
+    [
+     {
+      "node": "Output Sent",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Release Claim",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Release Claim": {
+   "main": [
+    [
+     {
+      "node": "Output Failed",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1",
+  "timezone": "Asia/Bangkok",
+  "callerPolicy": "workflowsFromSameOwner"
+ }
+}

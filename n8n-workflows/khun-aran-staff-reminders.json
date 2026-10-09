@@ -1,0 +1,118 @@
+{
+ "name": "Khun Aran-Staff-Reminders",
+ "settings": {
+  "executionOrder": "v1",
+  "timezone": "Asia/Bangkok",
+  "saveDataSuccessExecution": "none",
+  "saveDataErrorExecution": "all"
+ },
+ "nodes": [
+  {
+   "id": "sr-cron",
+   "name": "Every Minute",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "position": [
+    0,
+    300
+   ],
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "minutes",
+       "minutesInterval": 1
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "sr-due",
+   "name": "Due Reminders",
+   "type": "n8n-nodes-base.postgres",
+   "typeVersion": 2.6,
+   "position": [
+    220,
+    300
+   ],
+   "credentials": {
+    "postgres": {
+     "id": "epQtsywLYdQbHmj0",
+     "name": "Postgres - maite_flames_kohsamui"
+    }
+   },
+   "parameters": {
+    "operation": "executeQuery",
+    "query": "-- Staff reminders (HITL, 2026-10-04), run every minute. Open cases nobody claimed in time, only in staff hours\n-- (08:00–23:00 Bangkok; a case raised at night is reminded at 08:00). Urgent: every 5 min, max 3 reminders.\n-- Normal: every 20 min, max 2. Marks and returns the due cases in one statement (SKIP LOCKED: never reminded twice).\nWITH due AS (\n  SELECT id FROM human_requests\n  WHERE status = 'open'\n    AND (now() AT TIME ZONE 'Asia/Bangkok')::time >= time '08:00'\n    AND (now() AT TIME ZONE 'Asia/Bangkok')::time <  time '23:00'\n    AND (   (urgency = 'urgent' AND escalation_count < 3\n             AND COALESCE(last_escalated_at, created_at) <= now() - interval '5 minutes')\n         OR (urgency = 'normal' AND escalation_count < 2\n             AND COALESCE(last_escalated_at, created_at) <= now() - interval '20 minutes'))\n  ORDER BY id\n  FOR UPDATE SKIP LOCKED\n)\nUPDATE human_requests h\n   SET escalation_count = h.escalation_count + 1, last_escalated_at = now()\n  FROM due\n WHERE h.id = due.id\nRETURNING h.id, h.urgency, h.reason, h.guest_name, h.staff_chat_id, h.staff_message_id, h.escalation_count,\n          CASE WHEN h.urgency = 'urgent' THEN 3 ELSE 2 END AS max_reminders,\n          floor(extract(epoch FROM now() - h.created_at) / 60)::int AS minutes_open;\n",
+    "options": {}
+   }
+  },
+  {
+   "id": "sr-send",
+   "name": "Remind Staff",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    440,
+    300
+   ],
+   "credentials": {
+    "telegramApi": {
+     "id": "OHL5WqFngp1kkF8I",
+     "name": "Telegram — KhunAranStaffAlert"
+    }
+   },
+   "onError": "continueRegularOutput",
+   "parameters": {
+    "chatId": "={{ $json.staff_chat_id }}",
+    "text": "={{ (() => {\n  const c = $json;\n  const reasons = { complaint: 'Queja', adverse_event: 'Evento adverso', severe_allergy: 'Alergia grave',\n    special_request: 'Petición especial', reservation_not_found: 'Reserva no encontrada',\n    tool_failure: 'Fallo del sistema', wants_human: 'Quiere hablar con una persona' };\n  const head = c.urgency === 'urgent' ? '🔴🔴 RECORDATORIO URGENTE' : '🟡 Recordatorio';\n  return [head + ' — Caso #' + c.id + ' sin atender desde hace ' + c.minutes_open + ' min (aviso ' + c.escalation_count + ' de ' + c.max_reminders + ').',\n    'Motivo: ' + (reasons[c.reason] || c.reason) + (c.guest_name ? ' · Huésped: ' + c.guest_name : ''),\n    'Detalles en el mensaje original.'].join('\\n');\n})() }}",
+    "replyMarkup": "inlineKeyboard",
+    "inlineKeyboard": {
+     "rows": [
+      {
+       "row": {
+        "buttons": [
+         {
+          "text": "Lo atiendo",
+          "additionalFields": {
+           "callback_data": "={{ 'claim:' + $json.id }}"
+          }
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "additionalFields": {
+     "appendAttribution": false,
+     "reply_to_message_id": "={{ $json.staff_message_id || undefined }}"
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Every Minute": {
+   "main": [
+    [
+     {
+      "node": "Due Reminders",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Due Reminders": {
+   "main": [
+    [
+     {
+      "node": "Remind Staff",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ }
+}

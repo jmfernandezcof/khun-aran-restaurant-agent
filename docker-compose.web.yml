@@ -1,0 +1,56 @@
+services:
+  demo-talay-web:
+    image: nginx:1.30.5-alpine
+    container_name: demo-talay-web
+    restart: unless-stopped
+    volumes:
+      - ./deploy/web:/usr/share/nginx/html:ro
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./deploy/token.conf:/etc/nginx/token.conf:ro
+    networks:
+      - web
+      - qdrantnet
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web
+      - "traefik.http.routers.demo-talay.rule=Host(`demo-talay.nomadprompters.es`)"
+      - traefik.http.routers.demo-talay.entrypoints=websecure
+      - traefik.http.routers.demo-talay.tls.certresolver=myresolver
+      - traefik.http.services.demo-talay.loadbalancer.server.port=80
+      # Todo el sitio: limite suave por visitante (IP real que envia Cloudflare)
+      - traefik.http.routers.demo-talay.middlewares=talay-site-rate
+      - traefik.http.middlewares.talay-site-rate.ratelimit.average=120
+      - traefik.http.middlewares.talay-site-rate.ratelimit.period=1m
+      - traefik.http.middlewares.talay-site-rate.ratelimit.burst=60
+      - traefik.http.middlewares.talay-site-rate.ratelimit.sourcecriterion.requestheadername=CF-Connecting-IP
+      # /chat: cada mensaje es una llamada pagada a la IA -> 12/min por visitante y 8 KB maximo
+      - "traefik.http.routers.demo-talay-chat.rule=Host(`demo-talay.nomadprompters.es`) && Path(`/chat`)"
+      - traefik.http.routers.demo-talay-chat.entrypoints=websecure
+      - traefik.http.routers.demo-talay-chat.tls.certresolver=myresolver
+      - traefik.http.routers.demo-talay-chat.priority=500
+      - traefik.http.routers.demo-talay-chat.service=demo-talay
+      - traefik.http.routers.demo-talay-chat.middlewares=talay-chat-rate,talay-chat-body
+      - traefik.http.middlewares.talay-chat-rate.ratelimit.average=12
+      - traefik.http.middlewares.talay-chat-rate.ratelimit.period=1m
+      - traefik.http.middlewares.talay-chat-rate.ratelimit.burst=6
+      - traefik.http.middlewares.talay-chat-rate.ratelimit.sourcecriterion.requestheadername=CF-Connecting-IP
+      - traefik.http.middlewares.talay-chat-body.buffering.maxRequestBodyBytes=8192
+      # /voice: transcripcion pagada (OpenAI) -> 6/min por visitante y 1,5 MB maximo (~60 s de audio)
+      - "traefik.http.routers.demo-talay-voice.rule=Host(`demo-talay.nomadprompters.es`) && Path(`/voice`)"
+      - traefik.http.routers.demo-talay-voice.entrypoints=websecure
+      - traefik.http.routers.demo-talay-voice.tls.certresolver=myresolver
+      - traefik.http.routers.demo-talay-voice.priority=500
+      - traefik.http.routers.demo-talay-voice.service=demo-talay
+      - traefik.http.routers.demo-talay-voice.middlewares=talay-voice-rate,talay-voice-body
+      - traefik.http.middlewares.talay-voice-rate.ratelimit.average=6
+      - traefik.http.middlewares.talay-voice-rate.ratelimit.period=1m
+      - traefik.http.middlewares.talay-voice-rate.ratelimit.burst=3
+      - traefik.http.middlewares.talay-voice-rate.ratelimit.sourcecriterion.requestheadername=CF-Connecting-IP
+      - traefik.http.middlewares.talay-voice-body.buffering.maxRequestBodyBytes=1536000
+
+networks:
+  web:
+    external: true
+  qdrantnet:
+    external: true
+    name: root_root_default

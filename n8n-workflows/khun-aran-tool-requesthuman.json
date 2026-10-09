@@ -1,0 +1,340 @@
+{
+ "name": "Khun Aran-Tool-RequestHuman",
+ "nodes": [
+  {
+   "name": "When Called by Agent",
+   "type": "n8n-nodes-base.executeWorkflowTrigger",
+   "typeVersion": 1.1,
+   "position": [
+    0,
+    300
+   ],
+   "parameters": {
+    "inputSource": "passthrough"
+   }
+  },
+  {
+   "name": "Insert Case",
+   "type": "n8n-nodes-base.postgres",
+   "typeVersion": 2.6,
+   "position": [
+    220,
+    300
+   ],
+   "alwaysOutputData": true,
+   "credentials": {
+    "postgres": {
+     "id": "epQtsywLYdQbHmj0",
+     "name": "Postgres - maite_flames_kohsamui"
+    }
+   },
+   "parameters": {
+    "operation": "executeQuery",
+    "query": "INSERT INTO human_requests\n  (channel, session_key, reason, urgency, summary, guest_name, guest_contact,\n   confirmation_code, language, within_hours, staff_chat_id)\nSELECT\n  CASE WHEN $1::text IN ('web','telegram') THEN $1::text ELSE 'web' END,\n  NULLIF(trim($2::text), ''),\n  CASE WHEN $3::text IN ('complaint','adverse_event','severe_allergy','special_request',\n                         'reservation_not_found','tool_failure','wants_human')\n       THEN $3::text ELSE 'wants_human' END,\n  CASE WHEN $4::text = 'urgent' THEN 'urgent' ELSE 'normal' END,\n  COALESCE(NULLIF(trim($5::text), ''), '(sin resumen)'),\n  NULLIF(trim($6::text), ''),\n  trim($7::text),\n  NULLIF(upper(trim($8::text)), ''),\n  NULLIF(lower(trim($9::text)), ''),\n  (now() AT TIME ZONE 'Asia/Bangkok')::time >= time '08:00'\n    AND (now() AT TIME ZONE 'Asia/Bangkok')::time < time '23:00',\n  -1001234567890\nWHERE NULLIF(trim($7::text), '') IS NOT NULL\nRETURNING id, channel, reason, urgency, summary, guest_name, guest_contact,\n          confirmation_code, language, within_hours;",
+    "options": {
+     "queryReplacement": "={{ [$json.channel || 'web', $json.session_key || '', $json.reason || '', $json.urgency || '', $json.summary || '', $json.guest_name || '', $json.guest_contact || '', $json.confirmation_code || '', $json.language || ''] }}"
+    }
+   }
+  },
+  {
+   "name": "Case Created?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    440,
+    300
+   ],
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "has-id",
+       "leftValue": "={{ !!$json.id }}",
+       "rightValue": true,
+       "operator": {
+        "type": "boolean",
+        "operation": "true",
+        "singleValue": true
+       }
+      }
+     ],
+     "combinator": "and"
+    },
+    "options": {}
+   }
+  },
+  {
+   "name": "Notify Staff",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    660,
+    200
+   ],
+   "credentials": {
+    "telegramApi": {
+     "id": "OHL5WqFngp1kkF8I",
+     "name": "Telegram — KhunAranStaffAlert"
+    }
+   },
+   "onError": "continueErrorOutput",
+   "parameters": {
+    "chatId": "-1001234567890",
+    "text": "={{ (() => {\n  const c = $json;\n  const reasons = { complaint: 'Queja', adverse_event: 'Evento adverso', severe_allergy: 'Alergia grave',\n    special_request: 'Petición especial', reservation_not_found: 'Reserva no encontrada',\n    tool_failure: 'Fallo del sistema', wants_human: 'Quiere hablar con una persona' };\n  const lines = [\n    (c.urgency === 'urgent' ? '🔴 URGENTE' : '🟡 Normal') + ' — Caso #' + c.id,\n    'Motivo: ' + (reasons[c.reason] || c.reason),\n    'Huésped: ' + (c.guest_name || '(sin nombre)'),\n    'Contacto: ' + c.guest_contact,\n  ];\n  if (c.confirmation_code) lines.push('Reserva: ' + c.confirmation_code);\n  lines.push('Canal: ' + c.channel + (c.language ? ' · Idioma: ' + c.language : ''));\n  lines.push('', c.summary);\n  if (!c.within_hours) lines.push('', 'Fuera de horario: se prometió contacto a partir de las 8:00.');\n  return lines.join('\\n');\n})() }}",
+    "replyMarkup": "inlineKeyboard",
+    "inlineKeyboard": {
+     "rows": [
+      {
+       "row": {
+        "buttons": [
+         {
+          "text": "Lo atiendo",
+          "additionalFields": {
+           "callback_data": "={{ 'claim:' + $json.id }}"
+          }
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "additionalFields": {
+     "appendAttribution": false
+    }
+   }
+  },
+  {
+   "name": "Save Message Id",
+   "type": "n8n-nodes-base.postgres",
+   "typeVersion": 2.6,
+   "position": [
+    880,
+    100
+   ],
+   "credentials": {
+    "postgres": {
+     "id": "epQtsywLYdQbHmj0",
+     "name": "Postgres - maite_flames_kohsamui"
+    }
+   },
+   "parameters": {
+    "operation": "executeQuery",
+    "query": "UPDATE human_requests SET staff_message_id = $1::bigint WHERE id = $2::bigint RETURNING id, urgency, within_hours;",
+    "options": {
+     "queryReplacement": "={{ [$json.result.message_id, $('Insert Case').item.json.id] }}"
+    }
+   }
+  },
+  {
+   "name": "Output Sent",
+   "type": "n8n-nodes-base.set",
+   "typeVersion": 3.4,
+   "position": [
+    1100,
+    100
+   ],
+   "parameters": {
+    "assignments": {
+     "assignments": [
+      {
+       "id": "Output Sent-0",
+       "name": "status",
+       "value": "sent",
+       "type": "string"
+      },
+      {
+       "id": "Output Sent-1",
+       "name": "case_id",
+       "value": "={{ $json.id }}",
+       "type": "number"
+      },
+      {
+       "id": "Output Sent-2",
+       "name": "urgency",
+       "value": "={{ $json.urgency }}",
+       "type": "string"
+      },
+      {
+       "id": "Output Sent-3",
+       "name": "within_hours",
+       "value": "={{ $json.within_hours }}",
+       "type": "boolean"
+      }
+     ]
+    },
+    "options": {}
+   }
+  },
+  {
+   "name": "Cancel Case",
+   "type": "n8n-nodes-base.postgres",
+   "typeVersion": 2.6,
+   "position": [
+    880,
+    300
+   ],
+   "credentials": {
+    "postgres": {
+     "id": "epQtsywLYdQbHmj0",
+     "name": "Postgres - maite_flames_kohsamui"
+    }
+   },
+   "parameters": {
+    "operation": "executeQuery",
+    "query": "UPDATE human_requests SET status = 'cancelled' WHERE id = $1::bigint RETURNING id;",
+    "options": {
+     "queryReplacement": "={{ [$('Insert Case').item.json.id] }}"
+    }
+   }
+  },
+  {
+   "name": "Output Error",
+   "type": "n8n-nodes-base.set",
+   "typeVersion": 3.4,
+   "position": [
+    1100,
+    300
+   ],
+   "parameters": {
+    "assignments": {
+     "assignments": [
+      {
+       "id": "Output Error-0",
+       "name": "status",
+       "value": "error",
+       "type": "string"
+      },
+      {
+       "id": "Output Error-1",
+       "name": "message",
+       "value": "The team could not be notified. Do not tell the guest it was passed on; give them the restaurant contact instead.",
+       "type": "string"
+      }
+     ]
+    },
+    "options": {}
+   }
+  },
+  {
+   "name": "Output Missing Contact",
+   "type": "n8n-nodes-base.set",
+   "typeVersion": 3.4,
+   "position": [
+    660,
+    450
+   ],
+   "parameters": {
+    "assignments": {
+     "assignments": [
+      {
+       "id": "Output Missing Contact-0",
+       "name": "status",
+       "value": "missing_contact",
+       "type": "string"
+      },
+      {
+       "id": "Output Missing Contact-1",
+       "name": "message",
+       "value": "Ask the guest for a phone number, email or Telegram username, then call this tool again.",
+       "type": "string"
+      }
+     ]
+    },
+    "options": {}
+   }
+  }
+ ],
+ "connections": {
+  "When Called by Agent": {
+   "main": [
+    [
+     {
+      "node": "Insert Case",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Insert Case": {
+   "main": [
+    [
+     {
+      "node": "Case Created?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Case Created?": {
+   "main": [
+    [
+     {
+      "node": "Notify Staff",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Output Missing Contact",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Notify Staff": {
+   "main": [
+    [
+     {
+      "node": "Save Message Id",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Cancel Case",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Save Message Id": {
+   "main": [
+    [
+     {
+      "node": "Output Sent",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Cancel Case": {
+   "main": [
+    [
+     {
+      "node": "Output Error",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1",
+  "timezone": "Asia/Bangkok",
+  "callerPolicy": "workflowsFromSameOwner"
+ }
+}

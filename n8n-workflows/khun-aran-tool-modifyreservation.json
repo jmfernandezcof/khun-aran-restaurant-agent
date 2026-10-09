@@ -1,0 +1,297 @@
+{
+ "name": null,
+ "nodes": [
+  {
+   "parameters": {
+    "inputSource": "passthrough"
+   },
+   "id": "7efc4d7a-9d8d-44bf-8e11-004c4d7a0001",
+   "name": "When Called by Agent",
+   "type": "n8n-nodes-base.executeWorkflowTrigger",
+   "typeVersion": 1.1,
+   "position": [
+    240,
+    400
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "executeQuery",
+    "query": "WITH cfg AS (\n  SELECT capacity, max_reservation_days_ahead AS w, opening_hours, max_party_online, max_changes_per_booking_per_day AS max_changes\n  FROM restaurant_config WHERE internal_id = 'maite_flames_kohsamui'\n),\nr AS (\n  SELECT r.*, BTRIM(concat_ws(' ', c.name, c.surname)) AS guest_name, c.language AS guest_lang\n  FROM reservations r\n  JOIN customers c ON c.customer_id = r.customer_id\n  WHERE r.confirmation_code = upper(BTRIM($1))\n    AND r.status IN ('confirmed', 'pending')\n    AND r.reservation_date >= (NOW() AT TIME ZONE 'Asia/Bangkok')::date\n    AND (\n      ( $3 = 'web' AND c.channel = 'web'\n        AND c.channel_user_id = 'phone:' || BTRIM(regexp_replace($2, '[[:space:]().-]', '', 'g')) )\n      OR ( $3 = 'telegram' AND r.customer_id = NULLIF($4, '')::uuid )\n    )\n),\nn AS (\n  SELECT r.reservation_id,\n         COALESCE(NULLIF(BTRIM($5), '')::date, r.reservation_date) AS d,\n         COALESCE(NULLIF(BTRIM($6), '')::time, r.reservation_time) AS t,\n         COALESCE(NULLIF(BTRIM($7), '')::int, r.people) AS p,\n         CASE WHEN lower(BTRIM($8)) IN ('indoor', 'terrace') THEN lower(BTRIM($8)) ELSE r.zone END AS z,\n         CASE WHEN NULLIF(BTRIM($9), '') IS NULL THEN r.special_requests\n              ELSE concat_ws('; ', NULLIF(r.special_requests, ''), BTRIM($9)) END AS sr\n  FROM r\n),\nhrs AS (\n  SELECT (oh->>'open')::time AS open_t, (oh->>'close')::time AS close_t\n  FROM cfg, n, LATERAL jsonb_array_elements(cfg.opening_hours ->\n    (ARRAY['sunday','monday','tuesday','wednesday','thursday','friday','saturday'])[EXTRACT(DOW FROM n.d)::int + 1]) oh\n  ORDER BY (oh->>'open')::time LIMIT 1\n),\nst AS (\n  SELECT CASE\n    WHEN NOT EXISTS (SELECT 1 FROM r) THEN 'not_found'\n    WHEN (SELECT (n.d, n.t, n.p, n.z, n.sr) IS NOT DISTINCT FROM (r.reservation_date, r.reservation_time, r.people, r.zone, r.special_requests) FROM n, r) THEN 'no_changes'\n    WHEN (SELECT (n.d + n.t) < (NOW() AT TIME ZONE 'Asia/Bangkok')::timestamp FROM n) THEN 'past_date'\n    WHEN (SELECT n.d > (NOW() AT TIME ZONE 'Asia/Bangkok')::date + cfg.w FROM n, cfg) THEN 'too_far_ahead'\n    WHEN NOT EXISTS (SELECT 1 FROM hrs)\n      OR (SELECT n.t < hrs.open_t OR n.t > hrs.close_t - INTERVAL '30 minutes' FROM n, hrs) THEN 'outside_hours'\n    WHEN (SELECT flames_team_only(n.d) FROM n) THEN 'team_only_event'\n    WHEN (SELECT n.p > cfg.max_party_online FROM n, cfg) THEN 'party_too_large'\n    WHEN (SELECT count(*) FROM reservation_change_log l, r WHERE l.reservation_id = r.reservation_id\n            AND l.action = 'modified' AND l.created_at > now() - INTERVAL '24 hours') >= (SELECT max_changes FROM cfg) THEN 'limit_reached'\n    WHEN (SELECT cfg.capacity - flames_max_seated(n.d, n.t, n.reservation_id) < n.p FROM n, cfg) THEN 'no_availability'\n    ELSE 'modified' END AS status\n),\nupd AS (\n  UPDATE reservations res SET reservation_date = n.d, reservation_time = n.t, people = n.p, zone = n.z,\n                              special_requests = n.sr, updated_at = NOW()\n  FROM n\n  WHERE res.reservation_id = n.reservation_id AND (SELECT status FROM st) = 'modified'\n  RETURNING res.reservation_id\n),\nlog AS (\n  INSERT INTO reservation_change_log (reservation_id, action, old_values, new_values, actor)\n  SELECT r.reservation_id, 'modified',\n         jsonb_build_object('date', r.reservation_date, 'time', to_char(r.reservation_time, 'HH24:MI'), 'people', r.people, 'zone', r.zone, 'special_requests', r.special_requests),\n         jsonb_build_object('date', n.d, 'time', to_char(n.t, 'HH24:MI'), 'people', n.p, 'zone', n.z, 'special_requests', n.sr),\n         'khun_aran:' || COALESCE(NULLIF($3, ''), 'unknown')\n  FROM r, n WHERE EXISTS (SELECT 1 FROM upd)\n  RETURNING id\n)\nSELECT\n  (SELECT status FROM st) AS status,\n  (SELECT reservation_id FROM upd) AS reservation_id,\n  r.confirmation_code,\n  CASE WHEN (SELECT status FROM st) = 'modified' THEN n.d ELSE r.reservation_date END::text AS reservation_date,\n  to_char(CASE WHEN (SELECT status FROM st) = 'modified' THEN n.t ELSE r.reservation_time END, 'HH24:MI') AS reservation_time,\n  CASE WHEN (SELECT status FROM st) = 'modified' THEN n.p ELSE r.people END AS people,\n  CASE WHEN (SELECT status FROM st) = 'modified' THEN n.z ELSE r.zone END AS zone,\n  CASE WHEN (SELECT status FROM st) = 'modified' THEN n.sr ELSE r.special_requests END AS special_requests,\n  to_char(CASE WHEN (SELECT status FROM st) = 'modified' THEN n.d ELSE r.reservation_date END, 'FMDay FMDD FMMonth YYYY') AS date_label,\n  to_char(r.reservation_date, 'FMDay FMDD FMMonth YYYY') AS old_date_label,\n  to_char(r.reservation_time, 'HH24:MI') AS old_time,\n  r.people AS old_people,\n  to_char(n.d, 'FMDay FMDD FMMonth YYYY') AS requested_date_label,\n  r.guest_name,\n  r.guest_lang,\n  r.confirmation_email_to AS email_to,\n  (SELECT count(*) FROM reservation_change_log l WHERE l.reservation_id = r.reservation_id AND l.action = 'modified') + 1 AS change_seq,\n  CASE WHEN (SELECT status FROM st) = 'no_availability' THEN flames_alternatives(n.d, n.t, n.p) END AS alternatives,\n  CASE WHEN n.d IS NOT NULL THEN flames_special(n.d) END AS special\nFROM (SELECT 1) one LEFT JOIN r ON true LEFT JOIN n ON true",
+    "options": {
+     "queryReplacement": "={{ [$json.confirmation_code, $json.phone, $json.channel, $json.customer_id, $json.date || $json.new_date || '', $json.time || $json.new_time || '', $json.people || $json.new_people || '', $json.zone || $json.new_zone || '', $json.add_special_requests || $json.special_requests || ''] }}"
+    }
+   },
+   "id": "7efc4d7a-9d8d-44bf-8e11-004c4d7a0002",
+   "name": "Modify Reservation",
+   "type": "n8n-nodes-base.postgres",
+   "typeVersion": 2.6,
+   "position": [
+    480,
+    400
+   ],
+   "credentials": {
+    "postgres": {
+     "id": "epQtsywLYdQbHmj0",
+     "name": "Postgres - maite_flames_kohsamui"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "version": 2,
+      "leftValue": "",
+      "caseSensitive": true,
+      "typeValidation": "strict"
+     },
+     "conditions": [
+      {
+       "id": "c1",
+       "leftValue": "={{ $json.status }}",
+       "rightValue": "modified",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       }
+      }
+     ],
+     "combinator": "and"
+    }
+   },
+   "id": "7efc4d7a-9d8d-44bf-8e11-004c4d7a0003",
+   "name": "Status Modified?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    720,
+    400
+   ]
+  },
+  {
+   "parameters": {
+    "resource": "event",
+    "operation": "update",
+    "calendar": {
+     "__rl": true,
+     "value": "np.flames.kohsamui@gmail.com",
+     "mode": "list"
+    },
+    "eventId": "=flamesres{{ $('Modify Reservation').first().json.reservation_id }}",
+    "start": "={{ DateTime.fromISO($('Modify Reservation').first().json.reservation_date + 'T' + $('Modify Reservation').first().json.reservation_time, { zone: 'Asia/Bangkok' }).toISO() }}",
+    "end": "={{ DateTime.fromISO($('Modify Reservation').first().json.reservation_date + 'T' + $('Modify Reservation').first().json.reservation_time, { zone: 'Asia/Bangkok' }).plus({ minutes: 120 }).toISO() }}",
+    "additionalFields": {
+     "summary": "=Flames · Reserva {{ $('Modify Reservation').first().json.confirmation_code }} · {{ $('Modify Reservation').first().json.people }} pax",
+     "description": "=Reserva {{ $('Modify Reservation').first().json.confirmation_code }}\n\nPersonas: {{ $('Modify Reservation').first().json.people }}\nDía: {{ $('Modify Reservation').first().json.reservation_date }}\nHora: {{ $('Modify Reservation').first().json.reservation_time }}\nPreferencias: {{ $('Modify Reservation').first().json.special_requests || '—' }}",
+     "location": "Flames Restaurant, Talay Cliff Resort & Spa, Koh Samui"
+    }
+   },
+   "id": "7efc4d7a-9d8d-44bf-8e11-004c4d7a0004",
+   "name": "GCal Update Event",
+   "type": "n8n-nodes-base.googleCalendar",
+   "typeVersion": 1.3,
+   "position": [
+    960,
+    300
+   ],
+   "credentials": {
+    "googleCalendarOAuth2Api": {
+     "id": "1iuE4frpzmkT2RsO",
+     "name": "GCal Flames Koh Samui"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "mode": "raw",
+    "jsonOutput": "={{ JSON.stringify($('Modify Reservation').first().json) }}",
+    "options": {}
+   },
+   "id": "7efc4d7a-9d8d-44bf-8e11-004c4d7a0005",
+   "name": "Set Output",
+   "type": "n8n-nodes-base.set",
+   "typeVersion": 3.4,
+   "position": [
+    1200,
+    400
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "82d0e4e4-fbea-46e4-9d70-b3c453be891c",
+       "leftValue": "={{ $('Modify Reservation').first().json.email_to || '' }}",
+       "rightValue": "",
+       "operator": {
+        "type": "string",
+        "operation": "notEmpty",
+        "singleValue": true
+       }
+      }
+     ],
+     "combinator": "and"
+    },
+    "options": {}
+   },
+   "name": "Has Email?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    1180,
+    300
+   ],
+   "id": "81f9ac75-8e71-4501-9093-4b77ca445b5f"
+  },
+  {
+   "parameters": {
+    "jsCode": "const SRC = 'Modify Reservation';\n// \"Build Change Email\" (n8n Code, run once for all items) — used by ModifyReservation and CancelReservation (v2m).\n// Input item = the row of \"Modify Reservation\" / \"Cancel Reservation\" (status 'modified' | 'cancelled').\n// Sent automatically only to email_to, the address already stored on that booking (never one given in the chat).\n// The .ics keeps the UID of the original confirmation (<code>@flames.demo-talay...) so calendars update the same\n// event (SEQUENCE grows) or remove it (METHOD:CANCEL). Languages es/en/th (fallback en); no model-written text.\n// SRC (the query node of the workflow) is prepended at build time; the node before this one is the calendar node.\nconst r = (typeof SRC !== 'undefined' ? $(SRC) : $input).first().json;\nconst trig = $('When Called by Agent').first().json;\nconst want = String(trig.language || r.guest_lang || '').toLowerCase().slice(0, 2);   // tool input, else the guest's stored language\nconst lang = ['es', 'en', 'th'].includes(want) ? want : 'en';\nconst cancelled = r.status === 'cancelled';\n\nconst VENUE = 'Flames · Talay Cliff Resort & Spa, Koh Samui';\nconst TEAM = 'np.flames.kohsamui@gmail.com';\nconst WEB = 'https://demo-talay.nomadprompters.es';\nconst parse = (d, t) => { const [y, m, dd] = d.split('-').map(Number); const [hh, mi] = t.split(':').map(Number); return { y, m, dd, hh, mi }; };\n\nconst L = {\n  es: { days: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],\n        months: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],\n        date: (w, d, m, y) => `${w} ${d} de ${m} de ${y}`,\n        subjMod: 'Su reserva en Flames ha cambiado', subjCan: 'Su reserva en Flames ha sido cancelada',\n        hello: n => `Estimado/a ${n}:`, introMod: 'Le confirmamos el cambio en su reserva. Estos son los nuevos detalles:',\n        introCan: 'Le confirmamos que su reserva ha sido cancelada:', code: 'Código', when: 'Fecha', time: 'Hora',\n        people: 'Comensales', before: 'Antes', notes: 'Notas para la cocina',\n        icsMod: 'El archivo adjunto actualiza el evento en su calendario.', icsCan: 'El archivo adjunto elimina el evento de su calendario.',\n        notYou: `Si no ha sido usted quien ha hecho este cambio, escriba cuanto antes al equipo: ${TEAM}.`,\n        again: `Si desea volver a reservar, Khun Aran le atiende en ${WEB}.`, bye: 'Un cordial saludo,', sign: 'Khun Aran · Flames',\n        demo: 'Demostración de Nomad Prompters.' },\n  en: { days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],\n        months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],\n        date: (w, d, m, y) => `${w} ${d} ${m} ${y}`,\n        subjMod: 'Your reservation at Flames has changed', subjCan: 'Your reservation at Flames has been cancelled',\n        hello: n => `Dear ${n},`, introMod: 'We confirm the change to your reservation. These are the new details:',\n        introCan: 'We confirm that your reservation has been cancelled:', code: 'Code', when: 'Date', time: 'Time',\n        people: 'Guests', before: 'Before', notes: 'Notes for the kitchen',\n        icsMod: 'The attached file updates the event in your calendar.', icsCan: 'The attached file removes the event from your calendar.',\n        notYou: `If you did not make this change, please write to the team as soon as possible: ${TEAM}.`,\n        again: `If you would like to book again, Khun Aran is at ${WEB}.`, bye: 'Kind regards,', sign: 'Khun Aran · Flames',\n        demo: 'A Nomad Prompters demo.' },\n  th: { days: ['วันอาทิตย์', 'วันจันทร์', 'วันอังคาร', 'วันพุธ', 'วันพฤหัสบดี', 'วันศุกร์', 'วันเสาร์'],\n        months: ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'],\n        date: (w, d, m, y) => `${w}ที่ ${d} ${m} ${y}`,\n        subjMod: 'การจองของท่านที่ Flames มีการเปลี่ยนแปลง', subjCan: 'การจองของท่านที่ Flames ถูกยกเลิกแล้ว',\n        hello: n => `เรียน คุณ${n}`, introMod: 'เราขอยืนยันการเปลี่ยนแปลงการจองของท่าน รายละเอียดใหม่มีดังนี้',\n        introCan: 'เราขอยืนยันว่าการจองของท่านถูกยกเลิกแล้ว', code: 'รหัสการจอง', when: 'วันที่', time: 'เวลา',\n        people: 'จำนวนผู้ร่วมรับประทาน', before: 'เดิม', notes: 'หมายเหตุสำหรับห้องครัว',\n        icsMod: 'ไฟล์แนบจะอัปเดตกิจกรรมในปฏิทินของท่าน', icsCan: 'ไฟล์แนบจะลบกิจกรรมออกจากปฏิทินของท่าน',\n        notYou: `หากท่านไม่ได้ทำการเปลี่ยนแปลงนี้ โปรดติดต่อทีมงานโดยเร็วที่ ${TEAM}`,\n        again: `หากต้องการจองใหม่ Khun Aran ยินดีให้บริการที่ ${WEB}`, bye: 'ด้วยความเคารพ', sign: 'Khun Aran · Flames',\n        demo: 'การสาธิตโดย Nomad Prompters' },\n}[lang];\n\nconst esc = s => String(s ?? '').replace(/[&<>\"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;' }[c]));\nconst fmt = (d) => { const p = parse(d, '00:00'); const wd = new Date(Date.UTC(p.y, p.m - 1, p.dd)).getUTCDay(); return L.date(L.days[wd], p.dd, L.months[p.m - 1], p.y); };\nconst rows = [[L.code, r.confirmation_code], [L.when, fmt(r.reservation_date)], [L.time, r.reservation_time], [L.people, r.people]];\nif (!cancelled && (r.old_time !== r.reservation_time || r.old_people !== r.people || r.old_date_label !== r.date_label)) {\n  rows.push([L.before, `${r.old_date_label} · ${r.old_time} · ${r.old_people}`]);\n}\nif (!cancelled && r.special_requests) rows.push([L.notes, r.special_requests]);\n\nconst html = `<div style=\"font-family:Georgia,serif;max-width:560px;margin:auto;color:#2b2b2b;line-height:1.5\">\n<p style=\"font-size:13px;letter-spacing:2px;color:#9a6b3f;margin:0 0 16px\">FLAMES · TALAY CLIFF</p>\n<p>${esc(L.hello(r.guest_name || ''))}</p><p>${esc(cancelled ? L.introCan : L.introMod)}</p>\n<table style=\"border-collapse:collapse;width:100%;margin:12px 0\">${rows.map(([k, v]) =>\n  `<tr><td style=\"padding:6px 12px 6px 0;color:#777;vertical-align:top;white-space:nowrap\">${esc(k)}</td><td style=\"padding:6px 0\"><b>${esc(v)}</b></td></tr>`).join('')}</table>\n<p>${esc(cancelled ? L.icsCan : L.icsMod)}</p>\n<p style=\"font-size:14px\"><b>${esc(L.notYou)}</b></p>${cancelled ? `<p style=\"font-size:14px\">${esc(L.again)}</p>` : ''}\n<p>${esc(L.bye)}<br>${esc(L.sign)}<br><span style=\"color:#777\">${esc(VENUE)}</span></p>\n<p style=\"font-size:11px;color:#aaa;margin-top:24px\">${esc(L.demo)}</p></div>`;\n\nconst p2 = n => String(n).padStart(2, '0');\nconst utc = ms => { const t = new Date(ms); return `${t.getUTCFullYear()}${p2(t.getUTCMonth() + 1)}${p2(t.getUTCDate())}T${p2(t.getUTCHours())}${p2(t.getUTCMinutes())}00Z`; };\nconst p = parse(r.reservation_date, r.reservation_time);\nconst start = Date.UTC(p.y, p.m - 1, p.dd, p.hh - 7, p.mi);   // Asia/Bangkok = UTC+7, no DST\nconst icsEsc = s => String(s).replace(/\\\\/g, '\\\\\\\\').replace(/;/g, '\\\\;').replace(/,/g, '\\\\,').replace(/\\n/g, '\\\\n');\nconst ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Nomad Prompters//Khun Aran//EN', `METHOD:${cancelled ? 'CANCEL' : 'PUBLISH'}`, 'BEGIN:VEVENT',\n  `UID:${r.confirmation_code}@flames.demo-talay.nomadprompters.es`, `SEQUENCE:${cancelled ? 99 : Number(r.change_seq || 1)}`,\n  `DTSTAMP:${utc(Date.now())}`, `DTSTART:${utc(start)}`, `DTEND:${utc(start + 120 * 60000)}`,\n  `SUMMARY:${icsEsc(`Flames · ${r.confirmation_code}`)}`, `LOCATION:${icsEsc(VENUE)}`,\n  ...(cancelled ? ['STATUS:CANCELLED'] : ['STATUS:CONFIRMED']), 'END:VEVENT', 'END:VCALENDAR'].join('\\r\\n');\n\nreturn [{\n  json: { to: r.email_to, subject: `${cancelled ? L.subjCan : L.subjMod} · ${fmt(r.reservation_date)} · ${r.confirmation_code}`, html },\n  binary: { ics: { data: Buffer.from(ics, 'utf8').toString('base64'), mimeType: 'text/calendar', fileName: `flames-${r.confirmation_code}.ics` } },\n}];\n"
+   },
+   "name": "Build Change Email",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1400,
+    200
+   ],
+   "id": "80c686a0-205b-4636-83d6-8f7bd8ad287f"
+  },
+  {
+   "parameters": {
+    "sendTo": "={{ $json.to }}",
+    "subject": "={{ $json.subject }}",
+    "emailType": "html",
+    "message": "={{ $json.html }}",
+    "options": {
+     "appendAttribution": false,
+     "senderName": "Flames · Khun Aran",
+     "attachmentsUi": {
+      "attachmentsBinary": [
+       {
+        "property": "ics"
+       }
+      ]
+     }
+    }
+   },
+   "name": "Send Change Email",
+   "type": "n8n-nodes-base.gmail",
+   "typeVersion": 2.1,
+   "position": [
+    1620,
+    200
+   ],
+   "id": "5bbda26a-00ed-480e-9b4f-8b417145bef3",
+   "credentials": {
+    "gmailOAuth2": {
+     "id": "GmailFlamesKS001",
+     "name": "Gmail Flames Koh Samui"
+    }
+   },
+   "onError": "continueRegularOutput"
+  }
+ ],
+ "connections": {
+  "When Called by Agent": {
+   "main": [
+    [
+     {
+      "node": "Modify Reservation",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Modify Reservation": {
+   "main": [
+    [
+     {
+      "node": "Status Modified?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Status Modified?": {
+   "main": [
+    [
+     {
+      "node": "GCal Update Event",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Set Output",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "GCal Update Event": {
+   "main": [
+    [
+     {
+      "node": "Has Email?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Has Email?": {
+   "main": [
+    [
+     {
+      "node": "Build Change Email",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Set Output",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Build Change Email": {
+   "main": [
+    [
+     {
+      "node": "Send Change Email",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Send Change Email": {
+   "main": [
+    [
+     {
+      "node": "Set Output",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "pre_versionId": "7efc4d7a-9d8d-44bf-8e11-004c4d7a0006"
+}

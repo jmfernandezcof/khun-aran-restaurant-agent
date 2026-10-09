@@ -1,0 +1,78 @@
+id,section,name,description,price_thb,service,allergens,diet,spicy,contains,available,available_from,available_to,notes
+F001,Pop-up: Tacos of the World,Baja Fish Tacos,"Crispy battered fish, shredded cabbage, lime mayonnaise, pico de gallo, fresh lime",420,all_day,gluten|fish|eggs,,1,,yes,2026-10-01,2026-10-31,Monthly pop-up
+F002,Pop-up: Tacos of the World,Lamb al Pastor Tacos,"Lamb marinated in chillies and spices, slow-cooked, grilled pineapple, onion, coriander",450,all_day,gluten,,2,lamb,yes,2026-10-01,2026-10-31,Monthly pop-up
+F003,Pop-up: Tacos of the World,Smoky Chicken Barbacoa Tacos,"Chicken breast in smoky barbecue marinade, pickled red onion, sour cream",420,all_day,gluten|milk|mustard|celery,,1,,yes,2026-10-01,2026-10-31,Monthly pop-up
+F004,Pop-up: Tacos of the World,Frybread Beef Tacos,"Soft fried flatbread filled with spiced ground beef, lettuce, tomato, cheddar",450,all_day,gluten|milk,,1,beef,yes,2026-10-01,2026-10-31,Monthly pop-up
+F005,Pop-up: Tacos of the World,Iberian Ham Tacos,"Cured Spanish ham, tomato rubbed, olive oil, rocket",480,all_day,gluten,,0,pork,yes,2026-10-01,2026-10-31,Monthly pop-up
+F006,Pop-up: Tacos of the World,Crispy Tofu Tacos,"Crispy tofu, mango-chilli salsa, avocado, lime",390,all_day,gluten|soy,vegan,1,,yes,2026-10-01,2026-10-31,Monthly pop-up
+F007,Panini,Caprese Panini (ciabatta),"Buffalo mozzarella, ripe tomato, basil, balsamic glaze, olive oil; served with salad or fries",380,lunch|afternoon,gluten|milk|sulphites,vegetarian,0,,yes,,,
+F008,Panini,Grilled Chicken Panini (ciabatta),"Herb-marinated chicken breast, sun-dried tomato, rocket, basil pesto; served with salad or fries",380,lunch|afternoon,gluten|milk|tree_nuts,,0,,yes,,,
+F009,Panini,Pulled Pork BBQ Panini (brioche),"Slow-cooked pulled pork, house smoky BBQ sauce, tangy slaw; served with salad or fries",430,lunch|afternoon,gluten|eggs|milk|mustard|celery,,0,pork,yes,,,
+F010,Panini,Avocado & Egg Panini (focaccia),"Smashed avocado, soft-boiled egg, micro-greens, chilli oil; served with salad or fries",380,lunch|afternoon,gluten|eggs,vegetarian,1,,yes,,,
+F011,Grill & Share (for two),Seafood Lover Platter,"Wok-fried rock lobster with tamarind, orange-chilli king prawns, lemon-butter scallops wrapped in pancetta, grilled crab with dill mayonnaise, seared yellowfin tataki with sesame-wasabi soy; truffle potato purée, grilled vegetables; nam jim seafood, aioli, garlic butter",2850,dinner,crustaceans|molluscs|fish|eggs|milk|soy|gluten|sesame|mustard,,1,pork,yes,,,Signature. Served for two
+F012,Grill & Share (for two),Meat Lover Platter,"Herb-marinated wagyu rib-eye, Dijon-rosemary crusted Angus flank, honey-soy Kurobuta pork belly, red-wine braised short rib, pancetta-wrapped pork sausage; roasted sweet potato, grilled pumpkin; chimichurri, Madeira and peppercorn-cognac sauces",2850,dinner,gluten|mustard|soy|milk|sulphites|celery,,0,beef|pork|alcohol,yes,,,Signature. Served for two
+F013,Grill & Share (for two),Veggie Foodie Platter,"Spinach-feta stuffed portobello, grilled halloumi with lemon dressing, spinach mini quiche, truffle arancini in tomato cream, pomegranate couscous salad, beetroot-mint hummus with crudités; yoghurt-mint sauce, paprika aioli, avocado-lime dip",2400,dinner,gluten|milk|eggs|sesame,vegetarian,0,,yes,,,Served for two
+F014,Grill & Share (for two),Flames Seafood Bucket,"Grilled prawns, calamari, mussels and blue crab with nam jim seafood dip and garlic butter",1050,lunch|dinner,crustaceans|molluscs|fish|milk,gluten_free,2,,yes,,,Signature
+F015,Starters & Salads,Seared Scallops,"Scallops with soy-ginger foam, leek fondue, mango salad",720,lunch|dinner,molluscs|soy|gluten|milk,,0,,yes,,,
+F016,Starters & Salads,Flames Tuna Ceviche,"Fresh tuna cured in citrus and coconut milk, avocado, jalapeño, red onion, pine nuts, coriander, caviar, crispy bread",580,lunch|dinner,fish|tree_nuts|gluten,,1,,yes,,,Signature
+F017,Starters & Salads,Cured Salmon & Pomelo,"House-cured salmon, pomelo, sour cream, egg yolk, caviar, crispy capers, red onion, olive oil",690,lunch|dinner,fish|milk|eggs,gluten_free,0,,yes,,,
+F018,Starters & Salads,Grilled Octopus Salad,"Marinated octopus, tomato, green peas, avocado, red onion, jalapeño dressing",550,lunch|dinner,molluscs,gluten_free,1,,yes,,,
+F019,Starters & Salads,Caprese,"Vine-ripened tomato, buffalo mozzarella, basil pesto, strawberry",520,lunch|dinner,milk|tree_nuts,vegetarian|gluten_free,0,,yes,,,
+F020,Starters & Salads,Caesar Salad,"Cos lettuce, parmesan, croutons, crispy bacon, poached egg, salted egg yolk, Caesar dressing; add grilled chicken (+240) or sea prawns (+270)",430,lunch|dinner,gluten|eggs|milk|fish|mustard,,0,pork,yes,,,"Extras: chicken +240, prawns +270 (crustaceans)"
+F021,Starters & Salads,Garden Salad,"Avocado, pomegranate, tomato, red onion, ricotta, toasted almonds, olives, coconut-lemon dressing; add chicken (+240), prawns (+270) or tuna (+340)",420,lunch|dinner,milk|tree_nuts,vegetarian|gluten_free,0,,yes,,,Vegan without ricotta
+F022,Soups,Lobster Bisque,"Lobster meat, cream, milk foam, cheese straw, croutons",450,lunch|dinner,crustaceans|milk|gluten|celery|sulphites,,0,alcohol,yes,,,
+F023,Soups,Roasted Butternut Squash Soup,"Butternut squash, coconut milk, pumpkin seeds, coconut oil, poached egg, cheese straw",380,lunch|dinner,milk|eggs|gluten,vegetarian,0,,yes,,,
+F024,"Sandwiches, Burger & Wraps (served with fries)",Club Sandwich,"Grilled chicken and bacon, egg, lettuce, tomato, mayonnaise, toasted bread",440,lunch|afternoon,gluten|eggs|mustard,,0,pork,yes,,,
+F025,"Sandwiches, Burger & Wraps (served with fries)",Wagyu Beef Burger,"Wagyu patty, brioche bun, pickles, tomato, lettuce, cheddar",690,all_day,gluten|eggs|milk|mustard|sesame,,0,beef,yes,,,
+F026,"Sandwiches, Burger & Wraps (served with fries)",Grilled Chicken Wrap,"Grilled chicken, avocado, tomato, mozzarella",440,lunch|afternoon,gluten|milk,,0,,yes,,,
+F027,"Sandwiches, Burger & Wraps (served with fries)",Grilled Prawn Quesadillas,"Prawns, cheddar and mozzarella, cocktail sauce, tomato, coriander",480,lunch|afternoon,gluten|crustaceans|milk|eggs,,0,,yes,,,
+F028,"Sandwiches, Burger & Wraps (served with fries)",Grilled Vegetable Wrap,"Capsicum, zucchini, eggplant, carrot, feta, basil pesto",420,lunch|afternoon,gluten|milk|tree_nuts,vegetarian,0,,yes,,,
+F029,Sides,Garlic Butter Rice,"Fried rice, garlic, butter",210,all_day,milk,vegetarian|gluten_free,0,,yes,,,
+F030,Sides,French Fries,"Hand-cut fries, ketchup, mayonnaise",210,all_day,eggs,vegetarian|gluten_free,0,,yes,,,
+F031,Sides,Side Garden Salad,"Leaves, tomato, onion, radish, orange, pomegranate, almonds, balsamic",210,all_day,tree_nuts|sulphites,vegan|gluten_free,0,,yes,,,
+F032,Sides,Mashed Potatoes,"Potato, cream, butter",210,all_day,milk,vegetarian|gluten_free,0,,yes,,,
+F033,Sides,Grilled Vegetables,"Oyster mushroom, zucchini, bell pepper, Thai eggplant",210,all_day,,vegan|gluten_free,0,,yes,,,
+F034,Sides,Sautéed Mushrooms,"Oyster mushrooms, garlic, butter, thyme, parmesan",210,all_day,milk,vegetarian|gluten_free,0,,yes,,,
+F035,"Pasta (fettuccine, penne, spaghetti or linguine)",Tomato Ragù,"Tomato, garlic, basil, parmesan, olive oil",440,all_day,gluten|milk,vegetarian|gluten_free_on_request,0,,yes,,,Gluten-free pasta on request
+F036,"Pasta (fettuccine, penne, spaghetti or linguine)",Carbonara,"Pancetta, egg yolk, parmesan, parsley",590,all_day,gluten|eggs|milk,,0,pork,yes,,,
+F037,"Pasta (fettuccine, penne, spaghetti or linguine)",Aglio e Olio with Prawns,"Tiger prawns, garlic, dried chilli, anchovy, olive oil, white wine, parmesan",640,all_day,gluten|crustaceans|fish|milk|sulphites,,2,alcohol,yes,,,
+F038,"Pasta (fettuccine, penne, spaghetti or linguine)",Bolognese,"Traditional slow-cooked beef ragù, tomato",560,all_day,gluten|milk|celery,,0,beef,yes,,,
+F039,"Pasta (fettuccine, penne, spaghetti or linguine)",Truffle Mushroom Alfredo,"King oyster mushroom, garlic, cream, parmesan, truffle paste",490,all_day,gluten|milk,vegetarian,0,,yes,,,
+F040,Wood-fired Pizza,Spicy Salami,"San Marzano tomato, salami, mozzarella, parmesan, dried chilli",680,all_day,gluten|milk,,2,pork,yes,,,
+F041,Wood-fired Pizza,Margherita,"San Marzano tomato, mozzarella, fresh tomato, basil, olive oil",620,all_day,gluten|milk,vegetarian,0,,yes,,,
+F042,Wood-fired Pizza,Hawaiian,"San Marzano tomato, mozzarella, ham, pineapple",690,all_day,gluten|milk,,0,pork,yes,,,
+F043,Wood-fired Pizza,Prosciutto & Rocket,"San Marzano tomato, prosciutto, mozzarella, mascarpone, rocket",720,all_day,gluten|milk,,0,pork,yes,,,
+F044,Wood-fired Pizza,Bianca,"White base, mozzarella, garlic, zucchini, eggplant, onion, olives, sour cream, rocket",630,all_day,gluten|milk,vegetarian,0,,yes,,,
+F045,Wood-fired Pizza,Quattro Formaggi,"Mozzarella, gorgonzola, parmesan, fontina",690,all_day,gluten|milk,vegetarian,0,,yes,,,
+F046,Hot Pans,Mediterranean Seafood Hot Pan,"NZ mussels, tiger prawns, squid, scallops, cherry tomato, baby potato, basil, Cajun spice, white wine, chilli, anchovy",780,lunch|dinner,molluscs|crustaceans|fish|sulphites,gluten_free,2,alcohol,yes,,,
+F047,Hot Pans,Spicy Cayenne Chicken Hot Pan,"Chicken, onion, garlic, capsicum, cayenne, Mediterranean herbs",600,lunch|dinner,,gluten_free,3,,yes,,,
+F048,Hot Pans,Braised Beef Dutch Oven,"Slow-braised beef, onion, capsicum, zucchini, tomato, carrot, olives, garlic",620,lunch|dinner,celery|sulphites,gluten_free,0,beef|alcohol,yes,,,
+F049,Mains,Seared Salmon & Polenta,"Polenta, green salad, basil oil, orange, green pea sauce",790,lunch|dinner,fish|milk,gluten_free,0,,yes,,,
+F050,Mains,Seared Tuna & Mango,"Crunchy salad, mango, pine nuts, sesame-soy sauce",720,lunch|dinner,fish|tree_nuts|sesame|soy|gluten,,0,,yes,,,
+F051,Mains,Gambas al Ajillo,"Tiger prawns, garlic, white wine, paprika, lemon thyme, leaves; served with bread",760,lunch|dinner,crustaceans|sulphites|gluten,gluten_free_on_request,1,alcohol,yes,,,
+F052,Mains,Cajun Chicken Breast,"Roasted chicken, Cajun spice, grilled vegetables, avocado, tomato salsa, baba ganoush",640,lunch|dinner,sesame,gluten_free,1,,yes,,,
+F053,Mains,"Grilled Sea Bass, Mediterranean Style","Cherry tomato, green beans, potato, red onion, cucumber, lemon butter",780,lunch|dinner,fish|milk,gluten_free,0,,yes,,,
+F054,Mains,Pork Chop,"Grilled pork chop, grilled vegetables, potato wedges, pork jus",820,lunch|dinner,celery|sulphites,gluten_free,0,pork|alcohol,yes,,,
+F055,Mains,Lamb Loin with Gnocchi (200 g),"Homemade potato gnocchi, sautéed spinach, mushroom cream, red wine jus",1320,dinner,gluten|eggs|milk|sulphites|celery,,0,lamb|alcohol,yes,,,
+F056,Mains,Black Squid-Ink Seafood Risotto,"Tiger prawns, mussels, crab, squid ink, parmesan, cream",920,dinner,crustaceans|molluscs|milk|sulphites,gluten_free,0,alcohol,yes,,,Signature
+F057,Mains,Lamb Kebab & Buckwheat Tabbouleh,"Spiced ground lamb (cumin, turmeric, garam masala), buckwheat, parsley, tomato, mint sauce",620,lunch|dinner,milk,gluten_free,1,lamb,yes,,,Healthy selection
+F058,Mains,Salmon & Quinoa Salad,"Seared salmon, quinoa, avocado, dill, broccoli, cherry tomato, almonds, lemon and sesame dressing",620,lunch|dinner,fish|tree_nuts|sesame,gluten_free,0,,yes,,,Healthy selection
+F059,The Prime Cut (Australian beef; choice of sauce and two sides),Oyster Blade 350 g,Charcoal-grilled to your liking,1150,dinner,,gluten_free,0,beef,yes,,,Allergens depend on chosen sauce and sides
+F060,The Prime Cut (Australian beef; choice of sauce and two sides),Black Angus Flank 250 g,Charcoal-grilled to your liking,1250,dinner,,gluten_free,0,beef,yes,,,Allergens depend on chosen sauce and sides
+F061,The Prime Cut (Australian beef; choice of sauce and two sides),Striploin 350 g,Charcoal-grilled to your liking,1450,dinner,,gluten_free,0,beef,yes,,,Allergens depend on chosen sauce and sides
+F062,The Prime Cut (Australian beef; choice of sauce and two sides),Tenderloin 250 g,Charcoal-grilled to your liking,1600,dinner,,gluten_free,0,beef,yes,,,Allergens depend on chosen sauce and sides
+F063,The Prime Cut (Australian beef; choice of sauce and two sides),Rib-eye 250 g,Charcoal-grilled to your liking,1950,dinner,,gluten_free,0,beef,yes,,,Allergens depend on chosen sauce and sides
+F064,The Prime Cut (Australian beef; choice of sauce and two sides),"Angus Rump Trio (picanha, rump centre, rump sirloin, 150 g each)",Charcoal-grilled to your liking,2100,dinner,,gluten_free,0,beef,yes,,,Allergens depend on chosen sauce and sides
+F065,The Prime Cut (Australian beef; choice of sauce and two sides),T-bone 500 g,Charcoal-grilled to your liking,2900,dinner,,gluten_free,0,beef,yes,,,Allergens depend on chosen sauce and sides
+F066,The Prime Cut (Australian beef; choice of sauce and two sides),Sauce: Peppercorn,,0,dinner,milk|sulphites,gluten_free,1,alcohol,yes,,,Included with Prime Cut
+F067,The Prime Cut (Australian beef; choice of sauce and two sides),Sauce: Truffle Mushroom,,0,dinner,milk,vegetarian|gluten_free,0,,yes,,,Included with Prime Cut
+F068,The Prime Cut (Australian beef; choice of sauce and two sides),Sauce: Béarnaise,,0,dinner,eggs|milk|sulphites,vegetarian|gluten_free,0,,yes,,,Included with Prime Cut
+F069,The Prime Cut (Australian beef; choice of sauce and two sides),Sauce: Thai Jaew Chilli,Roasted chilli and toasted rice dip,0,dinner,fish,gluten_free,3,,yes,,,Included with Prime Cut
+F070,Desserts,Crêpes Suzette Flambé,"Flambéed at the table with orange liqueur, vanilla ice cream",420,lunch|dinner,gluten|eggs|milk,vegetarian,0,alcohol,yes,,,Signature. Tableside flambé
+F071,Desserts,Tiramisu,"Coffee liqueur, mascarpone, ladyfingers",420,all_day,gluten|eggs|milk,vegetarian,0,alcohol,yes,,,
+F072,Desserts,Mango Sticky Rice,"Ripe mango, glutinous rice, coconut milk, coconut ice cream",360,all_day,milk,vegetarian|gluten_free,0,,yes,,,Vegan with coconut sorbet
+F073,Desserts,Panna Cotta,"Mixed berry sauce, fresh berries, meringue",360,all_day,milk|eggs,vegetarian|gluten_free,0,,yes,,,
+F074,Desserts,Seasonal Tropical Fruit Platter,Selection of fresh tropical fruit,260,all_day,,vegan|gluten_free,0,,yes,,,
+F075,Desserts,Ice Cream (per scoop),"Vanilla, chocolate or coconut",180,all_day,milk|eggs,vegetarian|gluten_free,0,,yes,,,
+F076,Desserts,Sorbet (per scoop),"Lemon, passion fruit, mango or raspberry",180,all_day,,vegan|gluten_free,0,,yes,,,
+F077,Desserts,Ice Cream Topping,"Sprinkles, toasted almonds, berries, cookie crumble, whipped cream, compote, caramel or berry sauce",50,all_day,tree_nuts|gluten|milk,vegetarian,0,,yes,,,Allergens depend on topping

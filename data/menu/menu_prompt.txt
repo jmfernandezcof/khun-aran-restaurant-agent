@@ -1,0 +1,100 @@
+# Menu (prices in THB, plus 10% service and applicable taxes)
+Allergens and diets are deliberately not listed here: for any allergy, diet or restriction use the find_dishes tool. Tags: spicy 1-3; contains; service if not all day; dates for time-bound items.
+## Pop-up: Tacos of the World
+- Baja Fish Tacos — Crispy battered fish, shredded cabbage, lime mayonnaise, pico de gallo, fresh lime. 420 (Monthly pop-up) [spicy 1; only 2026-10-01 to 2026-10-31]
+- Lamb al Pastor Tacos — Lamb marinated in chillies and spices, slow-cooked, grilled pineapple, onion, coriander. 450 (Monthly pop-up) [spicy 2; contains lamb; only 2026-10-01 to 2026-10-31]
+- Smoky Chicken Barbacoa Tacos — Chicken breast in smoky barbecue marinade, pickled red onion, sour cream. 420 (Monthly pop-up) [spicy 1; only 2026-10-01 to 2026-10-31]
+- Frybread Beef Tacos — Soft fried flatbread filled with spiced ground beef, lettuce, tomato, cheddar. 450 (Monthly pop-up) [spicy 1; contains beef; only 2026-10-01 to 2026-10-31]
+- Iberian Ham Tacos — Cured Spanish ham, tomato rubbed, olive oil, rocket. 480 (Monthly pop-up) [contains pork; only 2026-10-01 to 2026-10-31]
+- Crispy Tofu Tacos — Crispy tofu, mango-chilli salsa, avocado, lime. 390 (Monthly pop-up) [spicy 1; only 2026-10-01 to 2026-10-31]
+## Panini
+- Caprese Panini (ciabatta) — Buffalo mozzarella, ripe tomato, basil, balsamic glaze, olive oil; served with salad or fries. 380 [lunch & afternoon only]
+- Grilled Chicken Panini (ciabatta) — Herb-marinated chicken breast, sun-dried tomato, rocket, basil pesto; served with salad or fries. 380 [lunch & afternoon only]
+- Pulled Pork BBQ Panini (brioche) — Slow-cooked pulled pork, house smoky BBQ sauce, tangy slaw; served with salad or fries. 430 [contains pork; lunch & afternoon only]
+- Avocado & Egg Panini (focaccia) — Smashed avocado, soft-boiled egg, micro-greens, chilli oil; served with salad or fries. 380 [spicy 1; lunch & afternoon only]
+## Grill & Share (for two)
+- Seafood Lover Platter — Wok-fried rock lobster with tamarind, orange-chilli king prawns, lemon-butter scallops wrapped in pancetta, grilled crab with dill mayonnaise, seared yellowfin tataki with sesame-wasabi soy; truffle potato purée, grilled vegetables; nam jim seafood, aioli, garlic butter. 2,850 (Signature. Served for two) [spicy 1; contains pork; dinner only]
+- Meat Lover Platter — Herb-marinated wagyu rib-eye, Dijon-rosemary crusted Angus flank, honey-soy Kurobuta pork belly, red-wine braised short rib, pancetta-wrapped pork sausage; roasted sweet potato, grilled pumpkin; chimichurri, Madeira and peppercorn-cognac sauces. 2,850 (Signature. Served for two) [contains beef, pork, alcohol; dinner only]
+- Veggie Foodie Platter — Spinach-feta stuffed portobello, grilled halloumi with lemon dressing, spinach mini quiche, truffle arancini in tomato cream, pomegranate couscous salad, beetroot-mint hummus with crudités; yoghurt-mint sauce, paprika aioli, avocado-lime dip. 2,400 (Served for two) [dinner only]
+- Flames Seafood Bucket — Grilled prawns, calamari, mussels and blue crab with nam jim seafood dip and garlic butter. 1,050 (Signature) [spicy 2; lunch & dinner only]
+## Starters & Salads
+- Seared Scallops — Scallops with soy-ginger foam, leek fondue, mango salad. 720 [lunch & dinner only]
+- Flames Tuna Ceviche — Fresh tuna cured in citrus and coconut milk, avocado, jalapeño, red onion, pine nuts, coriander, caviar, crispy bread. 580 (Signature) [spicy 1; lunch & dinner only]
+- Cured Salmon & Pomelo — House-cured salmon, pomelo, sour cream, egg yolk, caviar, crispy capers, red onion, olive oil. 690 [lunch & dinner only]
+- Grilled Octopus Salad — Marinated octopus, tomato, green peas, avocado, red onion, jalapeño dressing. 550 [spicy 1; lunch & dinner only]
+- Caprese — Vine-ripened tomato, buffalo mozzarella, basil pesto, strawberry. 520 [lunch & dinner only]
+- Caesar Salad — Cos lettuce, parmesan, croutons, crispy bacon, poached egg, salted egg yolk, Caesar dressing; add grilled chicken (+240) or sea prawns (+270). 430 (Extras: chicken +240, prawns +270 (crustaceans)) [contains pork; lunch & dinner only]
+- Garden Salad — Avocado, pomegranate, tomato, red onion, ricotta, toasted almonds, olives, coconut-lemon dressing; add chicken (+240), prawns (+270) or tuna (+340). 420 (Vegan without ricotta) [lunch & dinner only]
+## Soups
+- Lobster Bisque — Lobster meat, cream, milk foam, cheese straw, croutons. 450 [contains alcohol; lunch & dinner only]
+- Roasted Butternut Squash Soup — Butternut squash, coconut milk, pumpkin seeds, coconut oil, poached egg, cheese straw. 380 [lunch & dinner only]
+## Sandwiches, Burger & Wraps (served with fries)
+- Club Sandwich — Grilled chicken and bacon, egg, lettuce, tomato, mayonnaise, toasted bread. 440 [contains pork; lunch & afternoon only]
+- Wagyu Beef Burger — Wagyu patty, brioche bun, pickles, tomato, lettuce, cheddar. 690 [contains beef]
+- Grilled Chicken Wrap — Grilled chicken, avocado, tomato, mozzarella. 440 [lunch & afternoon only]
+- Grilled Prawn Quesadillas — Prawns, cheddar and mozzarella, cocktail sauce, tomato, coriander. 480 [lunch & afternoon only]
+- Grilled Vegetable Wrap — Capsicum, zucchini, eggplant, carrot, feta, basil pesto. 420 [lunch & afternoon only]
+## Sides
+- Garlic Butter Rice — Fried rice, garlic, butter. 210
+- French Fries — Hand-cut fries, ketchup, mayonnaise. 210
+- Side Garden Salad — Leaves, tomato, onion, radish, orange, pomegranate, almonds, balsamic. 210
+- Mashed Potatoes — Potato, cream, butter. 210
+- Grilled Vegetables — Oyster mushroom, zucchini, bell pepper, Thai eggplant. 210
+- Sautéed Mushrooms — Oyster mushrooms, garlic, butter, thyme, parmesan. 210
+## Pasta (fettuccine, penne, spaghetti or linguine)
+- Tomato Ragù — Tomato, garlic, basil, parmesan, olive oil. 440 (Gluten-free pasta on request)
+- Carbonara — Pancetta, egg yolk, parmesan, parsley. 590 [contains pork]
+- Aglio e Olio with Prawns — Tiger prawns, garlic, dried chilli, anchovy, olive oil, white wine, parmesan. 640 [spicy 2; contains alcohol]
+- Bolognese — Traditional slow-cooked beef ragù, tomato. 560 [contains beef]
+- Truffle Mushroom Alfredo — King oyster mushroom, garlic, cream, parmesan, truffle paste. 490
+## Wood-fired Pizza
+- Spicy Salami — San Marzano tomato, salami, mozzarella, parmesan, dried chilli. 680 [spicy 2; contains pork]
+- Margherita — San Marzano tomato, mozzarella, fresh tomato, basil, olive oil. 620
+- Hawaiian — San Marzano tomato, mozzarella, ham, pineapple. 690 [contains pork]
+- Prosciutto & Rocket — San Marzano tomato, prosciutto, mozzarella, mascarpone, rocket. 720 [contains pork]
+- Bianca — White base, mozzarella, garlic, zucchini, eggplant, onion, olives, sour cream, rocket. 630
+- Quattro Formaggi — Mozzarella, gorgonzola, parmesan, fontina. 690
+## Hot Pans
+- Mediterranean Seafood Hot Pan — NZ mussels, tiger prawns, squid, scallops, cherry tomato, baby potato, basil, Cajun spice, white wine, chilli, anchovy. 780 [spicy 2; contains alcohol; lunch & dinner only]
+- Spicy Cayenne Chicken Hot Pan — Chicken, onion, garlic, capsicum, cayenne, Mediterranean herbs. 600 [spicy 3; lunch & dinner only]
+- Braised Beef Dutch Oven — Slow-braised beef, onion, capsicum, zucchini, tomato, carrot, olives, garlic. 620 [contains beef, alcohol; lunch & dinner only]
+## Mains
+- Seared Salmon & Polenta — Polenta, green salad, basil oil, orange, green pea sauce. 790 [lunch & dinner only]
+- Seared Tuna & Mango — Crunchy salad, mango, pine nuts, sesame-soy sauce. 720 [lunch & dinner only]
+- Gambas al Ajillo — Tiger prawns, garlic, white wine, paprika, lemon thyme, leaves; served with bread. 760 [spicy 1; contains alcohol; lunch & dinner only]
+- Cajun Chicken Breast — Roasted chicken, Cajun spice, grilled vegetables, avocado, tomato salsa, baba ganoush. 640 [spicy 1; lunch & dinner only]
+- Grilled Sea Bass, Mediterranean Style — Cherry tomato, green beans, potato, red onion, cucumber, lemon butter. 780 [lunch & dinner only]
+- Pork Chop — Grilled pork chop, grilled vegetables, potato wedges, pork jus. 820 [contains pork, alcohol; lunch & dinner only]
+- Lamb Loin with Gnocchi (200 g) — Homemade potato gnocchi, sautéed spinach, mushroom cream, red wine jus. 1,320 [contains lamb, alcohol; dinner only]
+- Black Squid-Ink Seafood Risotto — Tiger prawns, mussels, crab, squid ink, parmesan, cream. 920 (Signature) [contains alcohol; dinner only]
+- Lamb Kebab & Buckwheat Tabbouleh — Spiced ground lamb (cumin, turmeric, garam masala), buckwheat, parsley, tomato, mint sauce. 620 (Healthy selection) [spicy 1; contains lamb; lunch & dinner only]
+- Salmon & Quinoa Salad — Seared salmon, quinoa, avocado, dill, broccoli, cherry tomato, almonds, lemon and sesame dressing. 620 (Healthy selection) [lunch & dinner only]
+## The Prime Cut (Australian beef; choice of sauce and two sides)
+- Oyster Blade 350 g — Charcoal-grilled to your liking. 1,150 (Allergens depend on chosen sauce and sides) [contains beef; dinner only]
+- Black Angus Flank 250 g — Charcoal-grilled to your liking. 1,250 (Allergens depend on chosen sauce and sides) [contains beef; dinner only]
+- Striploin 350 g — Charcoal-grilled to your liking. 1,450 (Allergens depend on chosen sauce and sides) [contains beef; dinner only]
+- Tenderloin 250 g — Charcoal-grilled to your liking. 1,600 (Allergens depend on chosen sauce and sides) [contains beef; dinner only]
+- Rib-eye 250 g — Charcoal-grilled to your liking. 1,950 (Allergens depend on chosen sauce and sides) [contains beef; dinner only]
+- Angus Rump Trio (picanha, rump centre, rump sirloin, 150 g each) — Charcoal-grilled to your liking. 2,100 (Allergens depend on chosen sauce and sides) [contains beef; dinner only]
+- T-bone 500 g — Charcoal-grilled to your liking. 2,900 (Allergens depend on chosen sauce and sides) [contains beef; dinner only]
+- Sauce: Peppercorn. included (Included with Prime Cut) [spicy 1; contains alcohol; dinner only]
+- Sauce: Truffle Mushroom. included (Included with Prime Cut) [dinner only]
+- Sauce: Béarnaise. included (Included with Prime Cut) [dinner only]
+- Sauce: Thai Jaew Chilli — Roasted chilli and toasted rice dip. included (Included with Prime Cut) [spicy 3; dinner only]
+## Desserts
+- Crêpes Suzette Flambé — Flambéed at the table with orange liqueur, vanilla ice cream. 420 (Signature. Tableside flambé) [contains alcohol; lunch & dinner only]
+- Tiramisu — Coffee liqueur, mascarpone, ladyfingers. 420 [contains alcohol]
+- Mango Sticky Rice — Ripe mango, glutinous rice, coconut milk, coconut ice cream. 360 (Vegan with coconut sorbet)
+- Panna Cotta — Mixed berry sauce, fresh berries, meringue. 360
+- Seasonal Tropical Fruit Platter — Selection of fresh tropical fruit. 260
+- Ice Cream (per scoop) — Vanilla, chocolate or coconut. 180
+- Sorbet (per scoop) — Lemon, passion fruit, mango or raspberry. 180
+- Ice Cream Topping — Sprinkles, toasted almonds, berries, cookie crumble, whipped cream, compote, caramel or berry sauce. 50 (Allergens depend on topping)
+## Drinks
+- Luxury Sparkling: Prosecco Gold Brut, Veneto NV (Fine, lively bubbles; our celebration pour) 4,300/bottle; Prosecco Pas Dosé, Veneto 2021 (Zero-dosage, Glera and Pinot; dry and precise) 5,600/bottle; Pinot Noir Rosé Brut, Italy NV (Delicate red fruit, elegant texture) 4,300/bottle
+- Wine by the Glass: Prosecco DOC Extra Dry NV (Italy) 410/glass; Sauvignon Blanc, Marlborough 2023 (New Zealand; crisp, citrus, pairs with seafood) 550/glass; Organic Merlot, Bordeaux AOC 2021 (France; soft, round, pairs with grilled meats) 440/glass; Provence Rosé 2024 (France; dry, floral) 450/glass
+- Cocktails: Mai Tai (Classic) 385/glass; Negroni (Classic) 385/glass; Mojito (Classic) 385/glass; Piña Colada (Classic) 385/glass; Long Island Iced Tea (Classic) 385/glass; Classic Martini (Classic) 385/glass; Watermelon Martini (Vodka, fresh watermelon, honey) 460/glass; Citrus Collins (Vodka, gin, pomelo, mandarin, premium tonic) 460/glass
+- Beer & Cider: Asahi 330 ml 190/bottle; Heineken 330 ml 190/bottle; Singha 330 ml 190/bottle; Chang 320 ml 190/bottle; Apple Cider 330 ml 180/bottle; Hoegaarden 330 ml 350/bottle; Hoegaarden Rosée 248 ml 350/bottle; Thai Craft Pale Ale 330 ml 350/bottle
+- Sake: Junmai, 300 ml (Japan) 1,800/bottle; Junmai, 720 ml (Japan) 3,500/bottle; Karakuchi Gold (dry), 300 ml (Japan) 1,500/bottle; Junmai Daiginjo 45, 720 ml (Japan) 4,500/bottle; Genshu Karakuchi, 300 ml (Japan) 1,700/bottle; Genshu Karakuchi, 720 ml (Japan) 3,500/bottle; Extra Dry, 300 ml (Japan) 1,400/bottle; Extra Dry, 720 ml (Japan) 3,300/bottle; Sparkling Rosé Sake, 720 ml (Japan) 4,000/bottle; Plum Sake, 300 ml (Japan) 2,000/bottle; Plum Sake, 720 ml (Japan) 3,000/bottle; Yuzu Liqueur, 500 ml (Japan) 2,500/bottle
+- Zero-proof: Virgin Mojito (Mint, lime, soda) 220/glass; Sunset Cooler (Cranberry, orange, lime, ginger ale) 220/glass; Chilled Juice (Orange, pineapple, apple, guava, mango, lychee or cranberry) 190/glass; Fresh Juice (Whole coconut, pineapple, watermelon or lemon) 220/glass; Smoothie (Mango or strawberry) 220/glass; Milkshake (Chocolate, strawberry, vanilla or banana) 240/glass; Soft Drink (Cola, lemon-lime, orange) 110/glass; Still Water 330 ml 170/bottle; Still Water 750 ml 260/bottle; Sparkling Water 330 ml 180/bottle; Sparkling Water 750 ml 290/bottle
+- Coffee & Tea: Espresso 140/cup; Black Coffee 150/cup; Latte / Cappuccino / Flat White (hot or iced) 190/cup; Hot or Iced Chocolate 200/cup; Decaf Espresso 200/cup; Decaf Latte / Cappuccino 220/cup; English Breakfast / Earl Grey 150/cup

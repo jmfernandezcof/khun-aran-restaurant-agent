@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1F2D3D">
+<meta name="robots" content="noindex">
+<title>Flames · Talay Cliff — Khun Aran, AI concierge (demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi" crossorigin="anonymous" data-cfasync="false"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.16/dist/purify.min.js" integrity="sha384-a7SzOxErzJ3ZpQz0zJ32d67dSitNzPcbfybc/ykU9KJhMgZkwqfSxlhhdJRS+XGL" crossorigin="anonymous" data-cfasync="false"></script>
+<style>
+:root {
+  --navy: #1F2D3D;
+  --navy-soft: #2A3A4F;
+  --cream: #F5EDDE;
+  --cream-soft: #FBF6EC;
+  --gold: #B89968;
+  --gold-soft: #D4B988;
+  --gold-text: #7D6235;   /* small gold text: 4.9-5.7:1 on cream/white (WCAG 1.4.3) */
+  --sage: #7A8E7D;
+  --ink: #1A1F26;
+  --muted: #6B7280;
+  --border: rgba(31, 45, 61, 0.12);
+  --shadow: 0 1px 3px rgba(31, 45, 61, 0.08), 0 8px 24px rgba(31, 45, 61, 0.06);
+  --header-h: 60px;
+  --aran-bar-h: 76px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+body {
+  font-family: 'Inter', 'IBM Plex Sans Thai', -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--cream-soft);
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === HEADER === */
+.header {
+  flex: 0 0 var(--header-h);
+  background: var(--navy);
+  color: var(--cream);
+  padding: 0 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 12px;
+}
+.logo { display: flex; flex-direction: column; line-height: 1; min-width: 0; }
+.logo-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 0.16em;
+  color: var(--cream);
+  white-space: nowrap;
+}
+.logo-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.28em;
+  margin-top: 3px;
+  color: var(--gold-soft);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* === MAIN === */
+.main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === MOBILE: aran bar arriba, chat debajo === */
+.aran-bar {
+  flex: 0 0 var(--aran-bar-h);
+  background: linear-gradient(180deg, var(--cream) 0%, var(--cream-soft) 100%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 18px;
+  border-bottom: 1px solid var(--border);
+}
+.aran-avatar {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 12%;
+  background: #fff;
+  border: 2px solid var(--gold);
+  flex-shrink: 0;
+  box-shadow: var(--shadow);
+}
+.aran-info { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.aran-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--navy);
+  letter-spacing: 0.02em;
+}
+.aran-role {
+  font-family: 'Inter', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold-text);
+  margin-top: 4px;
+}
+
+/* hero cuerpo entero — solo desktop */
+.hero {
+  display: none;
+}
+
+/* === CHAT === */
+.chat {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--cream-soft);
+}
+.messages {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px 18px;
+  display: flex; flex-direction: column;
+  gap: 14px;
+  scroll-behavior: smooth;
+}
+.msg { max-width: 88%; line-height: 1.55; word-wrap: break-word; }
+.msg.bot {
+  align-self: flex-start;
+  background: white;
+  color: var(--ink);
+  padding: 14px 18px;
+  border-radius: 4px 18px 18px 18px;
+  box-shadow: var(--shadow);
+  border-left: 3px solid var(--gold);
+  font-size: 15px;
+}
+.msg.user {
+  align-self: flex-end;
+  background: var(--navy);
+  color: var(--cream);
+  padding: 12px 16px;
+  border-radius: 18px 18px 4px 18px;
+  font-size: 15px;
+}
+.msg.bot p { margin: 0 0 10px 0; }
+.msg.bot p:last-child { margin-bottom: 0; }
+.msg.bot strong { color: var(--navy); font-weight: 600; }
+.msg.bot ul, .msg.bot ol { padding-left: 22px; margin: 8px 0; }
+
+.typing { display: flex; gap: 5px; padding: 6px 4px; }
+.typing span {
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  animation: bounce 1.3s infinite ease-in-out;
+}
+.typing span:nth-child(2) { animation-delay: 0.15s; }
+.typing span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bounce {
+  0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-4px); }
+}
+
+.input-area {
+  flex: 0 0 auto;
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  background: white;
+  border-top: 1px solid var(--border);
+  display: flex; gap: 10px; align-items: flex-end;
+}
+.input-area textarea {
+  flex: 1;
+  font: inherit;
+  font-size: 16px;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  resize: none;
+  outline: none;
+  background: var(--cream-soft);
+  color: var(--ink);
+  max-height: 100px;
+  min-height: 44px;
+  line-height: 1.4;
+  transition: border-color 0.18s;
+  font-family: inherit;
+}
+.input-area textarea:focus {
+  border-color: var(--gold-text);
+  background: white;
+}
+.send-btn {
+  background: var(--navy);
+  color: var(--cream);
+  border: none;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.18s;
+  flex-shrink: 0;
+}
+.send-btn:hover:not(:disabled) { background: var(--gold); color: var(--navy); }
+.send-btn:active:not(:disabled) { transform: scale(0.95); }
+.send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.send-btn svg { width: 20px; height: 20px; }
+/* First layer (Astra F02/F05/F09): AI, demo and privacy visible before the first message */
+.notice { flex: 0 0 auto; font-size: 11px; line-height: 1.4; color: #4B5563; text-align: center; padding: 6px 16px 0; }
+.notice a { color: inherit; text-decoration: underline; }
+/* Mic: same circle as send, outlined; red pulse while recording */
+.mic-btn { background: var(--cream-soft); color: var(--navy); border: 1px solid var(--border); }
+.mic-btn[hidden] { display: none; }
+.mic-btn.recording { background: #B3261E; color: white; border-color: #B3261E; animation: pulse 1.2s infinite; }
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(179, 38, 30, 0.45); }
+  50% { box-shadow: 0 0 0 8px rgba(179, 38, 30, 0); }
+}
+
+.sources {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 8px;
+  letter-spacing: 0.03em;
+  font-style: italic;
+}
+
+/* === DESKTOP (>= 820px) === */
+@media (min-width: 820px) {
+  :root { --header-h: 68px; }
+  .logo-name { font-size: 22px; }
+  .logo-sub { font-size: 9px; }
+
+  .main {
+    flex-direction: row;
+  }
+  .aran-bar { display: none; }
+  .hero {
+    flex: 0 0 380px;
+    display: flex;
+    background: linear-gradient(180deg, var(--cream) 0%, var(--cream-soft) 100%);
+    border-right: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .hero-aran {
+    width: auto;
+    max-width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: bottom center;
+    filter: drop-shadow(0 12px 32px rgba(31, 45, 61, 0.18));
+  }
+  .hero-name-block {
+    position: absolute;
+    bottom: 28px; left: 28px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .hero-name-block .name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 26px;
+    letter-spacing: 0.04em;
+    color: var(--navy);
+    line-height: 1;
+  }
+  .hero-name-block .role {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--gold-text);
+    margin-top: 6px;
+  }
+  .messages { padding: 32px 36px; gap: 18px; }
+  .msg { max-width: 78%; }
+  .msg.bot, .msg.user { font-size: 16px; }
+  .input-area { padding: 18px 36px; padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+}
+
+@media (min-width: 1100px) {
+  .hero { flex: 0 0 440px; }
+  .messages { padding: 40px 48px; }
+  .input-area { padding: 20px 48px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+}
+
+/* Scrollbar discreto solo desktop */
+.messages::-webkit-scrollbar { width: 6px; }
+.messages::-webkit-scrollbar-track { background: transparent; }
+.messages::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.weather-widget {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--cream);
+  padding: 6px 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+.weather-icon { font-size: 18px; }
+.weather-temp { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 600; color: var(--cream); }
+.weather-humidity, .weather-wind { color: var(--gold-soft); font-size: 11px; }
+@media (max-width: 819px) {
+  .weather-widget { padding: 4px 9px; gap: 6px; }
+  .weather-temp { font-size: 12px; }
+  .weather-wind { display: none; }
+  .weather-icon { font-size: 14px; }
+  .weather-humidity { font-size: 10px; }
+}
+
+.weather-mobile {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--antracita, #1A1F26);
+  font-size: 11px;
+  line-height: 1.1;
+}
+.weather-mobile .weather-icon { font-size: 18px; }
+.weather-mobile-data { display: flex; flex-direction: column; gap: 1px; }
+.w-mobile-temp { font-family: 'Cormorant Garamond', serif; font-size: 13px; font-weight: 600; }
+.w-mobile-hum { font-size: 10px; color: #6b6b6b; }
+@media (max-width: 819px) { .weather-widget { display: none !important; } }
+@media (min-width: 820px) { .weather-mobile { display: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">
+    <span class="logo-name">TALAY CLIFF</span>
+    <span class="logo-sub">Resort &amp; Spa · Koh Samui</span>
+  </div>
+  <div class="weather-widget" id="weather-widget" style="display:none">
+    <span class="weather-icon w-icon" id="w-icon">☀️</span>
+    <span class="weather-temp"><span class="w-temp" id="w-temp">--</span>&deg;C / <span class="w-temp-f" id="w-temp-f">--</span>&deg;F</span>
+    <span class="weather-humidity">💧 <span class="w-humidity" id="w-humidity">--</span>%</span>
+    <span class="weather-wind">💨 <span class="w-wind" id="w-wind">--</span> km/h</span>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- Mobile: barra horizontal con avatar pequeño -->
+  <div class="aran-bar">
+    <img class="aran-avatar" src="/aran.png" alt="Khun Aran">
+    <div class="aran-info">
+      <span class="aran-name">
+        <span class="aran-name-en">Khun Aran</span>
+      </span>
+      <span class="aran-role" id="role-label">AI Concierge · Flames</span>
+    </div>
+    <div class="weather-mobile" id="weather-mobile" style="display:none">
+      <span class="weather-icon w-icon">☀️</span>
+      <div class="weather-mobile-data">
+        <span class="w-mobile-temp"><span class="w-temp">--</span>&deg;/<span class="w-temp-f">--</span>&deg;F</span>
+        <span class="w-mobile-hum">💧 <span class="w-humidity">--</span>%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop: hero cuerpo entero -->
+  <section class="hero">
+    <img class="hero-aran" src="/aran.png" alt="Khun Aran" loading="eager">
+    <div class="hero-name-block">
+      <span class="name name-en">Khun Aran</span>
+      <div class="role" id="role-label-desktop">AI Concierge · Flames</div>
+    </div>
+  </section>
+
+  <section class="chat">
+    <div class="messages" id="messages" aria-live="polite"></div>
+    <p class="notice" id="notice">AI virtual assistant · Demo · Voice is transcribed by OpenAI, audio not stored · <a id="privacy-link" href="https://n8n.nomadprompters.es/webhook/flames-privacy?lang=en" target="_blank" rel="noopener">Privacy</a></p>
+    <div class="input-area">
+      <textarea id="input" rows="1" placeholder="Ask Khun Aran..." aria-label="Message"></textarea>
+      <button id="mic" class="send-btn mic-btn" type="button" aria-label="Speak" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="2" width="6" height="12" rx="3"/>
+          <path d="M5 11a7 7 0 0 0 14 0"/>
+          <line x1="12" y1="18" x2="12" y2="22"/>
+        </svg>
+      </button>
+      <button id="send" class="send-btn" type="button" aria-label="Send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+  </section>
+</main>
+
+<script>
+// Khun Aran detects the guest's language from what they write, so the UI has one text set.
+const TEXT = {
+  greeting: "Sawasdee krap · Hello · 你好 · こんにちは · مرحبا · Bonjour\n\nI'm Khun Aran, the AI concierge of Flames (this is a demo). Write in any language — I'll meet you there.",
+  placeholder: "Ask in any language...",
+  error: "Apologies, something went wrong. Please try again.",
+  rateLimited: "Apologies, too many messages in a short time. Please wait a moment and try again.",
+  micTitle: "Speak (up to 60 s). Your voice is transcribed by OpenAI; the audio is not stored.",
+  micDenied: "I can't reach your microphone. Please allow it in your browser, or simply type.",
+  voiceEmpty: "Apologies, I couldn't hear that clearly. Please try again or type.",
+  timeout: "Apologies, this is taking too long. Please try again in a moment.",
+};
+
+const $ = (s) => document.querySelector(s);
+const messagesEl = $("#messages");
+const inputEl = $("#input");
+const sendBtn = $("#send");
+
+let history = [];
+let busy = false;
+
+// n8n keeps conversation memory server-side keyed by session_id; the browser
+// just needs one stable id per visitor. ponytail: localStorage is enough, no cookie backend.
+const SID_KEY = "talay-cliff-sid";
+let sessionId = localStorage.getItem(SID_KEY);
+if (!sessionId) {
+  sessionId = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
+  localStorage.setItem(SID_KEY, sessionId);
+}
+
+// Astra F12: a request that never answers must not leave the chat locked.
+async function fetchWithTimeout(url, opts, ms) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), ms);
+  try { return await fetch(url, { ...opts, signal: ctl.signal }); }
+  finally { clearTimeout(t); }
+}
+
+function addBotMessage(text, sources) {
+  const div = document.createElement("div");
+  div.className = "msg bot";
+  div.dir = "auto";
+  const html = DOMPurify.sanitize(marked.parse(text || "", { breaks: true }));
+  div.innerHTML = html;
+  // Retrieval sources are internal implementation details, not guest-facing copy.
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function addUserMessage(text) {
+  const div = document.createElement("div");
+  div.className = "msg user";
+  div.dir = "auto";
+  div.textContent = text;
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function showTyping() {
+  const div = document.createElement("div");
+  div.className = "msg bot";
+  div.id = "typing";
+  div.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function hideTyping() {
+  const t = document.getElementById("typing");
+  if (t) t.remove();
+}
+
+// spoken: text transcribed from the mic; it goes through /chat exactly like a typed message.
+async function send(spoken) {
+  const isVoice = typeof spoken === "string";
+  const text = (isVoice ? spoken : inputEl.value).trim();
+  if (!text || busy || recorder) return;   // never while recording or transcribing (Astra F13)
+  busy = true;
+  sendBtn.disabled = true;
+  micBtn.disabled = true;
+  addUserMessage(text);
+  if (!isVoice) {
+    inputEl.value = "";
+    inputEl.style.height = "auto";
+  }
+  history.push({ role: "user", content: text });
+  if (history.length > 20) history = history.slice(-20);
+  showTyping();
+  try {
+    const r = await fetchWithTimeout("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId, message: text, lang: "multi" }),
+    }, 70000);
+    // Cloudflare's rate limit answers 429 with an HTML page (error 1015), not JSON.
+    if (r.status === 429) {
+      hideTyping();
+      addBotMessage(TEXT.rateLimited, []);
+      return;
+    }
+    const data = await r.json();
+    hideTyping();
+    const reply = data.reply || TEXT.error;
+    addBotMessage(reply, []);
+    history.push({ role: "assistant", content: reply });
+  } catch (e) {
+    hideTyping();
+    addBotMessage(e.name === "AbortError" ? TEXT.timeout : TEXT.error, []);
+  } finally {
+    busy = false;
+    sendBtn.disabled = false;
+    micBtn.disabled = false;
+    if (!isVoice) inputEl.focus();   // on a phone, focusing would pop the keyboard after speaking
+  }
+}
+
+// === Voice: record up to 60 s, /voice returns only the transcript, then send() as usual ===
+// Chrome/Android records webm/opus, Safari/iPhone mp4; n8n names the file by its type.
+// The audio is never stored: only the transcribed text enters the conversation.
+const micBtn = $("#mic");
+const MAX_REC_MS = 60 * 1000;
+let recorder = null;
+let recTimer = null;
+
+if (window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  micBtn.hidden = false;
+  micBtn.title = TEXT.micTitle;
+}
+
+async function startRecording() {
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (e) {
+    addBotMessage(TEXT.micDenied, []);
+    return;
+  }
+  const chunks = [];
+  try {
+    recorder = new MediaRecorder(stream, { audioBitsPerSecond: 32000 });
+  } catch (e) {
+    stream.getTracks().forEach((t) => t.stop());
+    addBotMessage(TEXT.micDenied, []);
+    return;
+  }
+  recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+  recorder.onstop = () => {
+    stream.getTracks().forEach((t) => t.stop());
+    micBtn.classList.remove("recording");
+    micBtn.setAttribute("aria-label", "Speak");
+    clearTimeout(recTimer);
+    const type = (recorder.mimeType || chunks[0]?.type || "audio/webm");
+    recorder = null;
+    if (chunks.length) transcribe(new Blob(chunks, { type }));
+    else sendBtn.disabled = false;
+  };
+  try {
+    recorder.start();
+  } catch (e) {
+    stream.getTracks().forEach((t) => t.stop());
+    recorder = null;
+    addBotMessage(TEXT.micDenied, []);
+    return;
+  }
+  sendBtn.disabled = true;
+  micBtn.classList.add("recording");
+  micBtn.setAttribute("aria-label", "Stop and send");
+  recTimer = setTimeout(stopRecording, MAX_REC_MS);
+}
+
+function stopRecording() {
+  if (recorder && recorder.state !== "inactive") recorder.stop();
+}
+
+async function transcribe(blob) {
+  if (busy) return;
+  busy = true;   // blocks Enter/send while the audio is being transcribed
+  micBtn.disabled = true;
+  sendBtn.disabled = true;
+  showTyping();
+  let text = "";
+  try {
+    const r = await fetchWithTimeout("/voice", {
+      method: "POST",
+      headers: { "Content-Type": blob.type.split(";")[0] },
+      body: blob,
+    }, 45000);
+    if (r.status === 429) {
+      hideTyping();
+      addBotMessage(TEXT.rateLimited, []);
+      return;
+    }
+    const data = await r.json();
+    text = (data.text || "").trim();
+  } catch (e) {
+    // falls through to voiceEmpty
+  } finally {
+    hideTyping();
+    busy = false;
+    micBtn.disabled = false;
+    sendBtn.disabled = false;
+  }
+  if (text) send(text);
+  else addBotMessage(TEXT.voiceEmpty, []);
+}
+
+micBtn.addEventListener("click", () => {
+  if (recorder) stopRecording();
+  else if (!busy) startRecording();
+});
+
+sendBtn.addEventListener("click", send);
+inputEl.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+});
+inputEl.addEventListener("input", () => {
+  inputEl.style.height = "auto";
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + "px";
+});
+
+inputEl.placeholder = TEXT.placeholder;
+const uiLang = (navigator.language || "en").slice(0, 2).toLowerCase();
+$("#privacy-link").href = "https://n8n.nomadprompters.es/webhook/flames-privacy?lang=" + (["es", "en", "th"].includes(uiLang) ? uiLang : "en");
+addBotMessage(TEXT.greeting, []);
+
+async function fetchWeather() {
+  try {
+    const r = await fetch("/weather");
+    const w = await r.json();
+    if (!w.available) return;
+    document.querySelectorAll(".w-icon").forEach(el => el.textContent = w.condition_emoji || "");
+    document.querySelectorAll(".w-temp").forEach(el => el.textContent = Math.round(w.temp_c));
+    document.querySelectorAll(".w-temp-f").forEach(el => el.textContent = Math.round(w.temp_f));
+    document.querySelectorAll(".w-humidity").forEach(el => el.textContent = Math.round(w.humidity));
+    document.querySelectorAll(".w-wind").forEach(el => el.textContent = Math.round(w.wind_kmh));
+    document.getElementById("weather-widget").style.display = "flex";
+    document.getElementById("weather-mobile").style.display = "flex";
+  } catch (e) {}
+}
+fetchWeather();
+setInterval(fetchWeather, 30 * 60 * 1000);
+inputEl.focus();
+</script>
+</body>
+</html>
